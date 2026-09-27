@@ -431,6 +431,8 @@ CREATE OR REPLACE FUNCTION public.review_ticket_task(p_task_id integer, p_is_pas
 AS $function$
 DECLARE
   v_ticket_id int;
+  v_submitted_at timestamp;
+  v_is_passed boolean;
   v_reviewed_at timestamp;
   v_ticket_status varchar;
   v_closed_at timestamp;
@@ -442,9 +444,20 @@ BEGIN
     RAISE EXCEPTION 'REVIEW_NOTES_REQUIRED';
   END IF;
 
-  SELECT ticket_id INTO v_ticket_id FROM ticket_task WHERE task_id = p_task_id;
+  SELECT ticket_id, submitted_at, is_passed INTO v_ticket_id, v_submitted_at, v_is_passed
+  FROM ticket_task WHERE task_id = p_task_id;
   IF v_ticket_id IS NULL THEN
     RAISE EXCEPTION 'TASK_NOT_FOUND';
+  END IF;
+
+  -- Chan review mot task chua duoc handler nop
+  IF v_submitted_at IS NULL THEN
+    RAISE EXCEPTION 'TASK_NOT_SUBMITTED_YET';
+  END IF;
+
+  -- Chan review LAI mot task da co ket qua roi (is_passed da khac NULL)
+  IF v_is_passed IS NOT NULL THEN
+    RAISE EXCEPTION 'TASK_ALREADY_REVIEWED';
   END IF;
 
   UPDATE ticket_task
@@ -483,6 +496,12 @@ BEGIN
 
   IF v_ticket_id IS NULL THEN
     RAISE EXCEPTION 'TASK_NOT_FOUND';
+  END IF;
+
+  -- Chan neu nguoi goi khong co role Handler (truoc day chi check ownership,
+  -- nen mot Viewer bi gan nham handler_user_id van submit duoc)
+  IF my_role() != 'Handler' THEN
+    RAISE EXCEPTION 'NOT_AUTHORIZED';
   END IF;
 
   IF v_handler_id != auth.uid() THEN
