@@ -34,23 +34,23 @@ export default function DashboardPage() {
     if (!role) return
     async function load() {
       if (role === 'Admin' || role === 'Viewer') {
-        const { data: s } = await supabase.from('dashboard_tickets_by_status').select('*')
+        const { data: s } = await supabase.rpc('get_dashboard_tickets_by_status')
         setByStatus(s || [])
-        const { data: p } = await supabase.from('dashboard_tickets_by_priority').select('*')
+        const { data: p } = await supabase.rpc('get_dashboard_tickets_by_priority')
         setByPriority(p || [])
-        const { data: d } = await supabase.from('dashboard_tickets_by_department').select('*')
+        const { data: d } = await supabase.rpc('get_dashboard_tickets_by_department')
         setByDept(d || [])
       }
       if (role === 'Admin') {
-        const { data: sla } = await supabase.from('dashboard_sla_summary').select('*').single()
-        setSlaSummary(sla)
+        const { data: sla } = await supabase.rpc('get_dashboard_sla_summary')
+        setSlaSummary(sla?.[0] ?? null)
       }
       if (role === 'Viewer') {
-        const { data: t } = await supabase.from('dashboard_ticket_trend').select('*')
+        const { data: t } = await supabase.rpc('get_dashboard_ticket_trend')
         setTrend(t || [])
-        const { data: c } = await supabase.from('dashboard_sla_compliance').select('*').single()
-        setSlaCompliance(c)
-        const { data: dp } = await supabase.from('dashboard_dept_performance').select('*')
+        const { data: c } = await supabase.rpc('get_dashboard_sla_compliance')
+        setSlaCompliance(c?.[0] ?? null)
+        const { data: dp } = await supabase.rpc('get_dashboard_dept_performance')
         setDeptPerf(dp || [])
       }
       if (role === 'Handler') {

@@ -42,11 +42,10 @@ export default function CreateTicketPage() {
   useEffect(() => {
     if (!depId) { setHandlers([]); return }
     async function loadHandlers() {
-      const { data } = await supabase
-        .from('user')
-        .select('user_id, full_name, role(role_name)')
-        .eq('dep_id', depId)
-      const onlyHandlers = (data || []).filter((u: any) => u.role?.role_name === 'Handler')
+      const { data } = await supabase.rpc('list_user_directory')
+      const onlyHandlers = (data || []).filter(
+        (u: any) => u.role_name === 'Handler' && String(u.dep_id) === String(depId)
+      )
       setHandlers(onlyHandlers)
       setHandlerId('')
     }

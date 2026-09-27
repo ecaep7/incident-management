@@ -39,8 +39,10 @@ export default function TicketDetailPage() {
   async function loadAll() {
     const { data: t } = await supabase.from('ticket').select('*').eq('ticket_id', ticketId).single()
     setTicket(t)
-    const { data: tk } = await supabase.from('ticket_task').select('*, user!handler_user_id(full_name)').eq('ticket_id', ticketId).order('created_at', { ascending: false })
-    setTasks(tk || [])
+    const { data: tk } = await supabase.from('ticket_task').select('*').eq('ticket_id', ticketId).order('created_at', { ascending: false })
+    const { data: dir } = await supabase.rpc('list_user_directory')
+    const nameById = new Map((dir || []).map((u: any) => [u.user_id, u.full_name]))
+    setTasks((tk || []).map((t: any) => ({ ...t, handler_full_name: nameById.get(t.handler_user_id) })))
     setLoadingData(false)
   }
 
@@ -57,8 +59,12 @@ export default function TicketDetailPage() {
   useEffect(() => {
     if (!reassignDep) { setHandlers([]); return }
     async function loadHandlers() {
-      const { data } = await supabase.from('user').select('user_id, full_name, role(role_name)').eq('dep_id', reassignDep)
-      setHandlers((data || []).filter((u: any) => u.role?.role_name === 'Handler'))
+      const { data } = await supabase.rpc('list_user_directory')
+      setHandlers(
+        (data || []).filter(
+          (u: any) => u.role_name === 'Handler' && String(u.dep_id) === String(reassignDep)
+        )
+      )
       setReassignHandler('')
     }
     loadHandlers()
@@ -130,7 +136,7 @@ export default function TicketDetailPage() {
         <CardContent className="flex flex-col gap-3">
           {tasks.map((tk) => (
             <div key={tk.task_id} className="rounded-md border p-3 text-sm">
-              <p className="font-medium">Task #{tk.task_id} — Người xử lý: {tk.user?.full_name || tk.handler_user_id}</p>
+              <p className="font-medium">Task #{tk.task_id} — Người xử lý: {tk.handler_full_name || tk.handler_user_id}</p>
               <p className="mt-1 text-muted-foreground">Mô tả xử lý: {tk.handler_description || '(chưa nộp)'}</p>
               <div className="mt-2">
                 {tk.is_passed === null ? (

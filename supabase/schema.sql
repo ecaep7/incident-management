@@ -196,8 +196,10 @@ CREATE POLICY "admin_all_user" ON user AS PERMISSIVE FOR ALL TO public
   USING (((my_role())::text = 'Admin'::text))
   WITH CHECK (((my_role())::text = 'Admin'::text));
 
-CREATE POLICY "authenticated_read_user" ON user AS PERMISSIVE FOR SELECT TO authenticated
-  USING (true);
+-- (Da xoa) "authenticated_read_user" USING(true) -- cho phep moi authenticated
+-- doc TOAN BO cot (email, phone...) cua TOAN BO nhan su. Thay bang policy sau:
+CREATE POLICY "self_read_user" ON user AS PERMISSIVE FOR SELECT TO authenticated
+  USING ((user_id = auth.uid()));
 
 CREATE POLICY "admin_all_role" ON role AS PERMISSIVE FOR ALL TO public
   USING (((my_role())::text = 'Admin'::text))
@@ -516,5 +518,90 @@ BEGIN
   UPDATE ticket SET status = 'Pending Review' WHERE ticket_id = v_ticket_id;
 
   RETURN QUERY SELECT p_task_id, v_submitted_at, 'Pending Review'::varchar;
+END;
+$function$;
+
+-- Danh ba noi bo an toan (khong co email/phone), dung cho cac man hinh
+-- can hien thi ten nguoi khac (lich su xu ly ticket, dropdown chon Handler)
+CREATE OR REPLACE FUNCTION public.list_user_directory()
+ RETURNS TABLE(user_id uuid, full_name character varying, role_name character varying, dep_id integer)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  SELECT u.user_id, u.full_name, r.role_name, u.dep_id
+  FROM "user" u
+  JOIN role r ON r.role_id = u.role_id;
+$function$;
+
+-- Cac ham boc lai 7 view dashboard (khong ho tro RLS truc tiep) bang kiem tra
+-- role thu cong; da REVOKE SELECT truc tiep vao view khoi authenticated/anon.
+CREATE OR REPLACE FUNCTION public.get_dashboard_sla_summary()
+ RETURNS SETOF dashboard_sla_summary
+ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+BEGIN
+  IF my_role() != 'Admin' THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
+  RETURN QUERY SELECT * FROM dashboard_sla_summary;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.get_dashboard_tickets_by_status()
+ RETURNS SETOF dashboard_tickets_by_status
+ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+BEGIN
+  IF my_role() NOT IN ('Admin','Viewer') THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
+  RETURN QUERY SELECT * FROM dashboard_tickets_by_status;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.get_dashboard_tickets_by_priority()
+ RETURNS SETOF dashboard_tickets_by_priority
+ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+BEGIN
+  IF my_role() NOT IN ('Admin','Viewer') THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
+  RETURN QUERY SELECT * FROM dashboard_tickets_by_priority;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.get_dashboard_tickets_by_department()
+ RETURNS SETOF dashboard_tickets_by_department
+ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+BEGIN
+  IF my_role() NOT IN ('Admin','Viewer') THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
+  RETURN QUERY SELECT * FROM dashboard_tickets_by_department;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.get_dashboard_ticket_trend()
+ RETURNS SETOF dashboard_ticket_trend
+ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+BEGIN
+  IF my_role() != 'Viewer' THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
+  RETURN QUERY SELECT * FROM dashboard_ticket_trend;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.get_dashboard_sla_compliance()
+ RETURNS SETOF dashboard_sla_compliance
+ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+BEGIN
+  IF my_role() != 'Viewer' THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
+  RETURN QUERY SELECT * FROM dashboard_sla_compliance;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.get_dashboard_dept_performance()
+ RETURNS SETOF dashboard_dept_performance
+ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+BEGIN
+  IF my_role() != 'Viewer' THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
+  RETURN QUERY SELECT * FROM dashboard_dept_performance;
 END;
 $function$
