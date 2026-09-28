@@ -5,11 +5,12 @@ import Link from 'next/link'
 import { useProfile } from '@/lib/useProfile'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { StatusDot, severityColor } from '@/components/StatusDot'
+import { SeverityTag, IncidentStatusTag, INCIDENT_STATUS_LABEL } from '@/components/Tag'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Download } from 'lucide-react'
+import { downloadCsv, fmtDateTime } from '@/lib/exportCsv'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -42,12 +43,7 @@ export default function IncidentsPage() {
     return () => clearInterval(interval)
   }, [])
 
-  const STATUS_LABEL: Record<string, string> = {
-    NEW: 'Mới',
-    Verifying: 'Đang xác minh',
-    Ticket_Created: 'Đã tạo ticket',
-    Closed_False: 'Cảnh báo sai',
-  }
+  const STATUS_LABEL = INCIDENT_STATUS_LABEL
 
   const kw = keyword.trim().toLowerCase()
   const filteredIncidents = incidents.filter((i) => {
@@ -64,6 +60,17 @@ export default function IncidentsPage() {
     setKeyword('')
     setSeverityFilter('all')
     setStatusFilter('all')
+  }
+
+  function exportExcel() {
+    downloadCsv(
+      'hang-cho-canh-bao',
+      ['Mã cảnh báo', 'Mức độ', 'Nội dung', 'IP thiết bị', 'Trạng thái', 'Thời gian tiếp nhận'],
+      filteredIncidents.map((i) => [
+        i.incident_id, i.severity_level, i.alert_summary, i.device_ip,
+        STATUS_LABEL[i.current_status] || i.current_status, fmtDateTime(i.received_at),
+      ]),
+    )
   }
 
   if (loadingProfile) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
@@ -122,6 +129,9 @@ export default function IncidentsPage() {
           <p className="ml-auto text-sm text-muted-foreground">
             {filteredIncidents.length} / {incidents.length} cảnh báo
           </p>
+          <Button variant="outline" onClick={exportExcel} disabled={filteredIncidents.length === 0}>
+            <Download className="mr-2 h-4 w-4" />Xuất Excel
+          </Button>
         </CardContent>
       </Card>
 
@@ -148,7 +158,7 @@ export default function IncidentsPage() {
                 {filteredIncidents.map((i) => (
                   <TableRow key={i.incident_id}>
                     <TableCell>
-                      <StatusDot label={i.severity_level} color={severityColor(i.severity_level)} />
+                      <SeverityTag level={i.severity_level} />
                     </TableCell>
                     <TableCell>
                       <Link href={`/incidents/${i.incident_id}`} className="font-medium text-primary hover:underline">
@@ -157,7 +167,7 @@ export default function IncidentsPage() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">{i.device_ip}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{STATUS_LABEL[i.current_status] || i.current_status}</Badge>
+                      <IncidentStatusTag status={i.current_status} />
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {new Date(i.received_at).toLocaleString('vi-VN')}

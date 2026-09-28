@@ -8,9 +8,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { StatusDot, ticketStatusColor } from '@/components/StatusDot'
+import { TicketStatusTag } from '@/components/Tag'
 import { SlaBadge, slaLabel } from '@/components/SlaBadge'
 import { Download } from 'lucide-react'
+import { downloadCsv, fmtDateTime } from '@/lib/exportCsv'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -67,24 +68,16 @@ export default function TicketsPage() {
     setKeyword('')
   }
 
-  // Xuat danh sach DANG HIEN THI (da ap bo loc) ra file CSV mo duoc bang Excel.
-  // Them BOM de Excel doc dung tieng Viet.
+  // Xuat danh sach DANG HIEN THI (da ap bo loc) ra file mo duoc bang Excel
   function exportExcel() {
-    const fmt = (d: string | null) => (d ? new Date(d).toLocaleString('vi-VN') : '')
-    const header = ['Mã ticket', 'Sự cố', 'Trạng thái', 'Hướng xử lý', 'Thời gian tạo', 'Hạn SLA', 'Thời gian đóng', 'Tình trạng SLA']
-    const rows = filteredTickets.map((t) => [
-      t.ticket_code, t.incident_alert?.alert_summary || '', t.status, t.direction,
-      fmt(t.created_at), fmt(t.sla_deadline), fmt(t.closed_at), slaLabel(t),
-    ])
-    const escape = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`
-    const csv = [header, ...rows].map((r) => r.map(escape).join(',')).join('\r\n')
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `danh-sach-ticket_${new Date().toISOString().slice(0, 10)}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+    downloadCsv(
+      'danh-sach-ticket',
+      ['Mã ticket', 'Sự cố', 'Trạng thái', 'Hướng xử lý', 'Thời gian tạo', 'Hạn SLA', 'Thời gian đóng', 'Tình trạng SLA'],
+      filteredTickets.map((t) => [
+        t.ticket_code, t.incident_alert?.alert_summary || '', t.status, t.direction,
+        fmtDateTime(t.created_at), fmtDateTime(t.sla_deadline), fmtDateTime(t.closed_at), slaLabel(t),
+      ]),
+    )
   }
 
   return (
@@ -181,7 +174,7 @@ export default function TicketsPage() {
                       {new Date(t.created_at).toLocaleString('vi-VN')}
                     </TableCell>
                     <TableCell>
-                      <StatusDot label={t.status} color={ticketStatusColor(t.status)} />
+                      <TicketStatusTag status={t.status} />
                     </TableCell>
                     <TableCell className="text-muted-foreground">{t.direction}</TableCell>
                     <TableCell className="text-muted-foreground">

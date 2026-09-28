@@ -5,12 +5,11 @@ import { useParams } from 'next/navigation'
 import { useProfile } from '@/lib/useProfile'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { StatusDot, ticketStatusColor } from '@/components/StatusDot'
+import { TicketStatusTag, Tag } from '@/components/Tag'
 import { SlaBadge } from '@/components/SlaBadge'
 import { TicketTimeline } from '@/components/TicketTimeline'
 import { Printer } from 'lucide-react'
@@ -134,7 +133,7 @@ export default function TicketDetailPage() {
         <div className="flex flex-col items-end gap-2">
           <div className="flex items-center gap-3">
             <SlaBadge ticket={ticket} />
-            <StatusDot label={ticket.status} color={ticketStatusColor(ticket.status)} />
+            <TicketStatusTag status={ticket.status} />
           </div>
           <Button variant="outline" size="sm" onClick={() => window.open(`/tickets/${ticketId}/print`, '_blank')}>
             <Printer className="mr-2 h-4 w-4" />In biên bản
@@ -156,11 +155,14 @@ export default function TicketDetailPage() {
               <p className="mt-1 text-muted-foreground">Mô tả xử lý: {tk.handler_description || '(chưa nộp)'}</p>
               <div className="mt-2">
                 {tk.is_passed === null ? (
-                  <Badge variant="outline">Chưa duyệt</Badge>
+                  <Tag tone="gray">Chưa duyệt</Tag>
                 ) : tk.is_passed ? (
-                  <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Đạt</Badge>
+                  <Tag tone="green">Đạt</Tag>
                 ) : (
-                  <Badge variant="destructive">Không đạt — {tk.admin_review_notes}</Badge>
+                  <span className="flex flex-col items-start gap-1">
+                    <Tag tone="red-solid">Không đạt</Tag>
+                    {tk.admin_review_notes && <span className="text-sm text-muted-foreground">Lý do: {tk.admin_review_notes}</span>}
+                  </span>
                 )}
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge'
+import { Tag } from '@/components/Tag'
 
 // Tinh trang thai SLA hoan toan o phia giao dien, tu cac cot da co san
 // (sla_deadline, status, closed_at). Khong ghi gi xuong DB.
@@ -35,7 +35,7 @@ export function slaLabel(t: any) {
   const { state, hours } = getSlaState(t)
   switch (state) {
     case 'met': return 'Đúng hạn'
-    case 'late': return `Trễ ${formatHours(hours)}`
+    case 'late': return `Quá hạn ${formatHours(hours)}`
     case 'overdue': return `Quá hạn ${formatHours(hours)}`
     case 'due_soon': return `Sắp hết hạn · còn ${formatHours(hours)}`
     case 'on_track': return `Còn ${formatHours(hours)}`
@@ -47,16 +47,11 @@ export function SlaBadge({ ticket }: { ticket: any }) {
   const { state } = getSlaState(ticket)
   const label = slaLabel(ticket)
   switch (state) {
-    case 'met':
-      return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">{label}</Badge>
+    case 'met': return <Tag tone="green">{label}</Tag>
     case 'late':
-    case 'overdue':
-      return <Badge variant="destructive">{label}</Badge>
-    case 'due_soon':
-      return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">{label}</Badge>
-    case 'on_track':
-      return <Badge variant="outline">{label}</Badge>
-    default:
-      return <span className="text-muted-foreground">—</span>
+    case 'overdue': return <Tag tone="red-solid">{label}</Tag>
+    case 'due_soon': return <Tag tone="amber">{label}</Tag>
+    case 'on_track': return <Tag tone="blue">{label}</Tag>
+    default: return <span className="text-muted-foreground">—</span>
   }
 }

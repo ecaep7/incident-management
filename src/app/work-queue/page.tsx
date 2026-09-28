@@ -5,9 +5,9 @@ import Link from 'next/link'
 import { useProfile } from '@/lib/useProfile'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { StatusDot, severityColor, ticketStatusColor } from '@/components/StatusDot'
+import { SeverityTag, TicketStatusTag, Tag } from '@/components/Tag'
 import { SlaBadge, getSlaState } from '@/components/SlaBadge'
+import { StatCard } from '@/components/StatCard'
 
 // Trang chi DOC du lieu: gom cac viec Admin can xu ly vao mot cho.
 // Khong goi RPC, khong ghi DB.
@@ -54,11 +54,11 @@ export default function WorkQueuePage() {
   })
 
   const summary = [
-    { label: 'Cảnh báo chờ phân loại', value: newAlerts.length },
-    { label: 'Ticket chờ duyệt', value: pendingReview.length },
-    { label: 'Quá hạn / sắp hết hạn SLA', value: slaRisk.length },
-    { label: 'Ticket đang mở', value: openTickets.length },
-  ]
+    { label: 'Cảnh báo chờ phân loại', value: newAlerts.length, color: 'orange' },
+    { label: 'Ticket chờ duyệt', value: pendingReview.length, color: 'amber' },
+    { label: 'Quá hạn / sắp hết hạn SLA', value: slaRisk.length, color: 'red' },
+    { label: 'Ticket đang mở', value: openTickets.length, color: 'blue' },
+  ] as const
 
   return (
     <div className="flex flex-col gap-6">
@@ -68,14 +68,7 @@ export default function WorkQueuePage() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {summary.map((s) => (
-          <Card key={s.label}>
-            <CardContent className="flex flex-col gap-1">
-              <span className="text-sm text-muted-foreground">{s.label}</span>
-              <span className="text-3xl font-semibold">{s.value}</span>
-            </CardContent>
-          </Card>
-        ))}
+        {summary.map((s) => <StatCard key={s.label} label={s.label} value={s.value} color={s.color} />)}
       </div>
 
       <QueueCard
@@ -84,9 +77,9 @@ export default function WorkQueuePage() {
         items={newAlerts}
         render={(a) => (
           <Link key={a.incident_id} href={`/incidents/${a.incident_id}`} className="flex items-center gap-3 rounded-md border p-3 text-sm hover:bg-muted">
-            <StatusDot label={a.severity_level} color={severityColor(a.severity_level)} />
+            <SeverityTag level={a.severity_level} />
             <span className="flex-1 font-medium">{a.alert_summary}</span>
-            {a.current_status === 'Verifying' && <Badge variant="outline">Đang xác minh</Badge>}
+            {a.current_status === 'Verifying' && <Tag tone="amber">Đang xác minh</Tag>}
             <span className="text-muted-foreground">{new Date(a.received_at).toLocaleString('vi-VN')}</span>
           </Link>
         )}
@@ -101,7 +94,7 @@ export default function WorkQueuePage() {
 
       <QueueCard
         title="Ticket quá hạn hoặc sắp hết hạn SLA"
-        empty="Chưa có ticket nào có nguy cơ trễ SLA."
+        empty="Chưa có ticket nào có nguy cơ quá hạn SLA."
         items={slaRisk}
         render={(t) => <TicketRow key={t.ticket_id} t={t} />}
       />
@@ -127,7 +120,7 @@ function TicketRow({ t }: { t: any }) {
     <Link href={`/tickets/${t.ticket_id}`} className="flex items-center gap-3 rounded-md border p-3 text-sm hover:bg-muted">
       <span className="font-medium text-primary">{t.ticket_code}</span>
       <span className="flex-1 truncate">{t.incident_alert?.alert_summary || '—'}</span>
-      <StatusDot label={t.status} color={ticketStatusColor(t.status)} />
+      <TicketStatusTag status={t.status} />
       <SlaBadge ticket={t} />
     </Link>
   )

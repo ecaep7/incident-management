@@ -5,12 +5,11 @@ import { useParams, useRouter } from 'next/navigation'
 import { useProfile } from '@/lib/useProfile'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { StatusDot, severityColor } from '@/components/StatusDot'
+import { SeverityTag, IncidentStatusTag } from '@/components/Tag'
 
 export default function IncidentDetailPage() {
   const { profile, loading: loadingProfile } = useProfile()
@@ -82,8 +81,8 @@ export default function IncidentDetailPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <StatusDot label={incident.severity_level} color={severityColor(incident.severity_level)} />
-          <Badge variant="outline">{incident.current_status}</Badge>
+          <SeverityTag level={incident.severity_level} />
+          <IncidentStatusTag status={incident.current_status} />
         </div>
       </div>
 
