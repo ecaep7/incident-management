@@ -128,7 +128,7 @@ export default function DeviceDetailPage() {
                   <TableRow key={h.incident_id}>
                     <TableCell className="whitespace-nowrap text-muted-foreground">{fmt(h.received_at)}</TableCell>
                     <TableCell><SeverityTag level={h.severity_level} /></TableCell>
-                    <TableCell className="max-w-[280px]">
+                    <TableCell className="max-w-[280px] whitespace-normal">
                       {isAdmin ? (
                         <Link href={`/incidents/${h.incident_id}`} className="hover:underline">{h.alert_summary}</Link>
                       ) : h.alert_summary}
