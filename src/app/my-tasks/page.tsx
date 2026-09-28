@@ -6,6 +6,7 @@ import { useProfile } from '@/lib/useProfile'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { SlaBadge } from '@/components/SlaBadge'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
@@ -27,9 +28,18 @@ export default function MyTasksPage() {
     async function load() {
       const { data, error } = await supabase
         .from('ticket_task')
-        .select('task_id, ticket_id, direction, submitted_at, is_passed, ticket(ticket_code, incident_alert(alert_summary))')
+        .select('task_id, ticket_id, direction, submitted_at, is_passed, ticket(ticket_code, status, sla_deadline, closed_at, incident_alert(alert_summary))')
         .order('created_at', { ascending: false })
-      if (!error) setTasks(data)
+      if (!error) {
+        // Viec chua nop len dau, sap xep theo han SLA gan nhat
+        const sorted = [...(data || [])].sort((a: any, b: any) => {
+          const aOpen = a.submitted_at === null ? 0 : 1
+          const bOpen = b.submitted_at === null ? 0 : 1
+          if (aOpen !== bOpen) return aOpen - bOpen
+          return new Date(a.ticket?.sla_deadline || 0).getTime() - new Date(b.ticket?.sla_deadline || 0).getTime()
+        })
+        setTasks(sorted)
+      }
       setLoadingData(false)
     }
     load()
@@ -60,6 +70,7 @@ export default function MyTasksPage() {
                   <TableHead>Nội dung sự cố</TableHead>
                   <TableHead>Hướng xử lý</TableHead>
                   <TableHead>Trạng thái</TableHead>
+                  <TableHead>SLA</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -73,6 +84,7 @@ export default function MyTasksPage() {
                     <TableCell className="text-muted-foreground">{t.ticket?.incident_alert?.alert_summary || '—'}</TableCell>
                     <TableCell className="text-muted-foreground">{t.direction}</TableCell>
                     <TableCell>{statusBadge(t)}</TableCell>
+                    <TableCell>{t.submitted_at === null ? <SlaBadge ticket={t.ticket} /> : <span className="text-muted-foreground">—</span>}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

@@ -5,11 +5,12 @@ import Link from 'next/link'
 import { useProfile } from '@/lib/useProfile'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { StatusDot, ticketStatusColor } from '@/components/StatusDot'
+import { SlaBadge, slaLabel } from '@/components/SlaBadge'
+import { Download } from 'lucide-react'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -26,12 +27,13 @@ export default function TicketsPage() {
   const [directionFilter, setDirectionFilter] = useState('all')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [keyword, setKeyword] = useState('')
 
   useEffect(() => {
     async function load() {
       const { data, error } = await supabase
         .from('ticket')
-        .select('ticket_id, ticket_code, status, direction, sla_deadline, is_sla_breached, created_at, incident_alert(alert_summary)')
+        .select('ticket_id, ticket_code, status, direction, sla_deadline, is_sla_breached, created_at, closed_at, incident_alert(alert_summary)')
         .order('created_at', { ascending: false })
       if (!error) setTickets(data)
       setLoadingData(false)
@@ -43,7 +45,9 @@ export default function TicketsPage() {
 
   if (loadingProfile) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
 
+  const kw = keyword.trim().toLowerCase()
   const filteredTickets = tickets.filter((t) => {
+    if (kw && !`${t.ticket_code} ${t.incident_alert?.alert_summary || ''}`.toLowerCase().includes(kw)) return false
     if (statusFilter !== 'all' && t.status !== statusFilter) return false
     if (directionFilter !== 'all' && t.direction !== directionFilter) return false
     if (dateFrom && new Date(t.created_at) < new Date(dateFrom)) return false
@@ -60,6 +64,27 @@ export default function TicketsPage() {
     setDirectionFilter('all')
     setDateFrom('')
     setDateTo('')
+    setKeyword('')
+  }
+
+  // Xuat danh sach DANG HIEN THI (da ap bo loc) ra file CSV mo duoc bang Excel.
+  // Them BOM de Excel doc dung tieng Viet.
+  function exportExcel() {
+    const fmt = (d: string | null) => (d ? new Date(d).toLocaleString('vi-VN') : '')
+    const header = ['Mã ticket', 'Sự cố', 'Trạng thái', 'Hướng xử lý', 'Thời gian tạo', 'Hạn SLA', 'Thời gian đóng', 'Tình trạng SLA']
+    const rows = filteredTickets.map((t) => [
+      t.ticket_code, t.incident_alert?.alert_summary || '', t.status, t.direction,
+      fmt(t.created_at), fmt(t.sla_deadline), fmt(t.closed_at), slaLabel(t),
+    ])
+    const escape = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`
+    const csv = [header, ...rows].map((r) => r.map(escape).join(',')).join('\r\n')
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `danh-sach-ticket_${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -71,6 +96,11 @@ export default function TicketsPage() {
 
       <Card>
         <CardContent className="flex flex-wrap items-end gap-4">
+          <div className="flex flex-col gap-2">
+            <Label>Tìm kiếm</Label>
+            <Input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="Mã ticket, nội dung..." className="w-56" />
+          </div>
+
           <div className="flex flex-col gap-2">
             <Label>Trạng thái</Label>
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? 'all')}>
@@ -111,6 +141,9 @@ export default function TicketsPage() {
           </div>
 
           <Button onClick={clearFilters}>Xóa bộ lọc</Button>
+          <Button variant="outline" onClick={exportExcel} disabled={filteredTickets.length === 0} className="ml-auto">
+            <Download className="mr-2 h-4 w-4" />Xuất Excel ({filteredTickets.length})
+          </Button>
         </CardContent>
       </Card>
 
@@ -132,7 +165,7 @@ export default function TicketsPage() {
                   <TableHead>Trạng thái</TableHead>
                   <TableHead>Hướng xử lý</TableHead>
                   <TableHead>Hạn SLA</TableHead>
-                  <TableHead>Quá hạn?</TableHead>
+                  <TableHead>SLA</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -155,7 +188,7 @@ export default function TicketsPage() {
                       {new Date(t.sla_deadline).toLocaleString('vi-VN')}
                     </TableCell>
                     <TableCell>
-                      {t.is_sla_breached ? <Badge variant="destructive">Quá hạn</Badge> : <span className="text-muted-foreground">Không</span>}
+                      <SlaBadge ticket={t} />
                     </TableCell>
                   </TableRow>
                 ))}

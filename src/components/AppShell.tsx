@@ -10,7 +10,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { profile, loading } = useProfile()
 
-  if (pathname === '/login') return <>{children}</>
+  // Trang dang nhap va trang ban in khong can sidebar
+  if (pathname === '/login' || pathname.endsWith('/print')) return <>{children}</>
   if (loading) return <div className="flex min-h-screen items-center justify-center">Đang tải...</div>
 
   return (

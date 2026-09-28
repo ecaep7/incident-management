@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ModeToggle } from '@/components/mode-toggle'
 import { supabase } from '@/lib/supabase'
-import { LayoutDashboard, AlertTriangle, Ticket, UserPlus, ClipboardList, ChevronUp, KeyRound, LogOut } from 'lucide-react'
+import { LayoutDashboard, AlertTriangle, Ticket, UserPlus, ClipboardList, ChevronUp, KeyRound, LogOut, Inbox } from 'lucide-react'
 
 export function AppSidebar({ profile }: { profile: any }) {
   const pathname = usePathname()
@@ -25,6 +25,7 @@ export function AppSidebar({ profile }: { profile: any }) {
 
   const items = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, show: true },
+    { href: '/work-queue', label: 'Việc cần xử lý', icon: Inbox, show: role === 'Admin' },
     { href: '/incidents', label: 'Hàng chờ cảnh báo', icon: AlertTriangle, show: role === 'Admin' },
     { href: '/tickets', label: 'Ticket', icon: Ticket, show: role === 'Admin' || role === 'Viewer' },
     { href: '/my-tasks', label: 'Việc của tôi', icon: ClipboardList, show: role === 'Handler' },

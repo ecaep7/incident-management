@@ -11,6 +11,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { StatusDot, ticketStatusColor } from '@/components/StatusDot'
+import { SlaBadge } from '@/components/SlaBadge'
+import { TicketTimeline } from '@/components/TicketTimeline'
+import { Printer } from 'lucide-react'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -128,8 +131,21 @@ export default function TicketDetailPage() {
             Hướng xử lý: {ticket.direction} · Hạn SLA: {new Date(ticket.sla_deadline).toLocaleString('vi-VN')}
           </p>
         </div>
-        <StatusDot label={ticket.status} color={ticketStatusColor(ticket.status)} />
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-3">
+            <SlaBadge ticket={ticket} />
+            <StatusDot label={ticket.status} color={ticketStatusColor(ticket.status)} />
+          </div>
+          <Button variant="outline" size="sm" onClick={() => window.open(`/tickets/${ticketId}/print`, '_blank')}>
+            <Printer className="mr-2 h-4 w-4" />In biên bản
+          </Button>
+        </div>
       </div>
+
+      <TicketTimeline
+        key={tasks.map((t) => `${t.task_id}:${t.submitted_at}:${t.is_passed}`).join('|') + ticket.status}
+        ticketId={ticketId}
+      />
 
       <Card>
         <CardHeader><CardTitle className="text-base">Lịch sử xử lý ({tasks.length} lượt)</CardTitle></CardHeader>
