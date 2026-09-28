@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { SeverityTag, TaskResultTag } from '@/components/Tag'
 import { SlaBadge, getSlaState } from '@/components/SlaBadge'
 import { CheckCircle2, Clock, XCircle, AlertTriangle } from 'lucide-react'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 const SUBMIT_TASK_URL = 'https://wwpjuwuqhvpuujcymkzi.supabase.co/functions/v1/submit-task'
 const UPLOAD_ATTACHMENT_URL = 'https://wwpjuwuqhvpuujcymkzi.supabase.co/functions/v1/upload-attachment'
@@ -27,6 +28,7 @@ export default function MyTaskDetailPage() {
   const [loadingData, setLoadingData] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [message, setMessage] = useState('')
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   async function loadTask() {
     const { data } = await supabase
@@ -171,7 +173,14 @@ export default function MyTaskDetailPage() {
                   <p className="text-xs text-muted-foreground">Ví dụ: ảnh chụp cấu hình, log sau xử lý, biên bản hiện trường.</p>
                 </div>
                 {message && <p className="text-sm text-destructive">{message}</p>}
-                <Button onClick={handleSubmit} disabled={submitting} className="self-start">
+                <Button
+                  onClick={() => {
+                    if (!description) { setMessage('Cần nhập mô tả xử lý'); return }
+                    setMessage(''); setConfirmOpen(true)
+                  }}
+                  disabled={submitting}
+                  className="self-start"
+                >
                   {submitting ? 'Đang nộp...' : 'Nộp kết quả'}
                 </Button>
               </div>
@@ -179,6 +188,15 @@ export default function MyTaskDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={`Nộp kết quả cho ${ticket.ticket_code}?`}
+        description="Sau khi nộp, bạn không thể sửa mô tả hay file đính kèm. Kết quả sẽ được chuyển cho Admin duyệt."
+        confirmLabel="Nộp kết quả"
+        onConfirm={handleSubmit}
+      />
     </div>
   )
 }

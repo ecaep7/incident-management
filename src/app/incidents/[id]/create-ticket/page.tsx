@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -28,6 +29,7 @@ export default function CreateTicketPage() {
 
   const [submitting, setSubmitting] = useState(false)
   const [message, setMessage] = useState('')
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   useEffect(() => {
     async function loadMasterData() {
@@ -93,7 +95,9 @@ export default function CreateTicketPage() {
             <Label>Loại sự cố</Label>
             <Select value={categoryId} onValueChange={(v) => setCategoryId(v ?? '')}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="-- Chọn --" />
+                <SelectValue placeholder="-- Chọn --">
+                  {(() => { const c = categories.find((x) => String(x.category_id) === categoryId); return c ? `${c.category_name} (${c.priority_level}, SLA ${c.sla_hours}h)` : null })()}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {categories.map((c) => (
@@ -109,7 +113,7 @@ export default function CreateTicketPage() {
             <Label>Hướng xử lý</Label>
             <Select value={direction} onValueChange={(v) => setDirection(v ?? '')}>
               <SelectTrigger className="w-full">
-                <SelectValue />
+                <SelectValue>{direction === 'ONSITE' ? 'Hiện trường (ONSITE)' : 'Hệ thống (SYSTEM)'}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="SYSTEM">Hệ thống (SYSTEM)</SelectItem>
@@ -122,7 +126,9 @@ export default function CreateTicketPage() {
             <Label>Phòng ban phụ trách</Label>
             <Select value={depId} onValueChange={(v) => setDepId(v ?? '')}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="-- Chọn --" />
+                <SelectValue placeholder="-- Chọn --">
+                  {departments.find((d) => String(d.dep_id) === depId)?.dep_name}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {departments.map((d) => (
@@ -136,7 +142,9 @@ export default function CreateTicketPage() {
             <Label>Người xử lý</Label>
             <Select value={handlerId} onValueChange={(v) => setHandlerId(v ?? '')} disabled={!depId}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={depId ? '-- Chọn --' : 'Chọn phòng ban trước'} />
+                <SelectValue placeholder={depId ? '-- Chọn --' : 'Chọn phòng ban trước'}>
+                  {handlers.find((h) => h.user_id === handlerId)?.full_name}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {handlers.map((h) => (
@@ -147,11 +155,27 @@ export default function CreateTicketPage() {
           </div>
 
           {message && <p className="text-sm text-destructive">{message}</p>}
-          <Button onClick={handleSubmit} disabled={submitting} className="self-start">
+          <Button
+            onClick={() => {
+              if (!categoryId || !depId || !handlerId) { setMessage('Điền đủ cả 3 mục'); return }
+              setMessage(''); setConfirmOpen(true)
+            }}
+            disabled={submitting}
+            className="self-start"
+          >
             {submitting ? 'Đang tạo...' : 'Tạo ticket'}
           </Button>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={`Tạo ticket cho cảnh báo #${incidentId}?`}
+        description="Cảnh báo sẽ được xác nhận là sự cố thật, ticket được tạo và giao ngay cho người xử lý. Hạn SLA bắt đầu tính từ lúc này."
+        confirmLabel="Tạo ticket"
+        onConfirm={handleSubmit}
+      />
     </div>
   )
 }
