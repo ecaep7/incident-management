@@ -5,12 +5,12 @@ import { useParams, useRouter } from 'next/navigation'
 import { useProfile } from '@/lib/useProfile'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { StatusDot, severityColor } from '@/components/StatusDot'
+import { SeverityTag, IncidentStatusTag } from '@/components/Tag'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 export default function IncidentDetailPage() {
   const { profile, loading: loadingProfile } = useProfile()
@@ -25,6 +25,7 @@ export default function IncidentDetailPage() {
   const [reason, setReason] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [confirmReject, setConfirmReject] = useState(false)
 
   async function loadData() {
     const { data: incidentData } = await supabase
@@ -82,8 +83,8 @@ export default function IncidentDetailPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <StatusDot label={incident.severity_level} color={severityColor(incident.severity_level)} />
-          <Badge variant="outline">{incident.current_status}</Badge>
+          <SeverityTag level={incident.severity_level} />
+          <IncidentStatusTag status={incident.current_status} />
         </div>
       </div>
 
@@ -132,7 +133,15 @@ export default function IncidentDetailPage() {
             <div className="flex flex-col gap-2">
               <Label>Từ chối (cảnh báo sai)</Label>
               <Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Lý do từ chối" />
-              <Button onClick={handleReject} disabled={actionLoading} variant="destructive" className="self-start">
+              <Button
+                onClick={() => {
+                  if (!reason) { setMessage('Cần nhập lý do từ chối'); return }
+                  setMessage(''); setConfirmReject(true)
+                }}
+                disabled={actionLoading}
+                variant="destructive"
+                className="self-start"
+              >
                 Từ chối
               </Button>
             </div>
@@ -145,6 +154,16 @@ export default function IncidentDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      <ConfirmDialog
+        open={confirmReject}
+        onOpenChange={setConfirmReject}
+        title="Từ chối cảnh báo này?"
+        description="Cảnh báo sẽ được đánh dấu là cảnh báo sai và rời khỏi hàng chờ. Thao tác này không thể hoàn tác trên giao diện."
+        confirmLabel="Từ chối cảnh báo"
+        tone="destructive"
+        onConfirm={handleReject}
+      />
     </div>
   )
 }

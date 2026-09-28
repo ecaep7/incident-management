@@ -5,12 +5,15 @@ import { useParams } from 'next/navigation'
 import { useProfile } from '@/lib/useProfile'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { StatusDot, ticketStatusColor } from '@/components/StatusDot'
+import { TicketStatusTag, Tag } from '@/components/Tag'
+import { SlaBadge } from '@/components/SlaBadge'
+import { TicketTimeline } from '@/components/TicketTimeline'
+import { Printer } from 'lucide-react'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -35,6 +38,7 @@ export default function TicketDetailPage() {
   const [reassignHandler, setReassignHandler] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [confirmKind, setConfirmKind] = useState<null | 'pass' | 'fail' | 'reassign'>(null)
 
   async function loadAll() {
     const { data: t } = await supabase.from('ticket').select('*').eq('ticket_id', ticketId).single()
@@ -128,8 +132,21 @@ export default function TicketDetailPage() {
             Hướng xử lý: {ticket.direction} · Hạn SLA: {new Date(ticket.sla_deadline).toLocaleString('vi-VN')}
           </p>
         </div>
-        <StatusDot label={ticket.status} color={ticketStatusColor(ticket.status)} />
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-3">
+            <SlaBadge ticket={ticket} />
+            <TicketStatusTag status={ticket.status} />
+          </div>
+          <Button variant="outline" size="sm" onClick={() => window.open(`/tickets/${ticketId}/print`, '_blank')}>
+            <Printer className="mr-2 h-4 w-4" />In biên bản
+          </Button>
+        </div>
       </div>
+
+      <TicketTimeline
+        key={tasks.map((t) => `${t.task_id}:${t.submitted_at}:${t.is_passed}`).join('|') + ticket.status}
+        ticketId={ticketId}
+      />
 
       <Card>
         <CardHeader><CardTitle className="text-base">Lịch sử xử lý ({tasks.length} lượt)</CardTitle></CardHeader>
@@ -140,11 +157,14 @@ export default function TicketDetailPage() {
               <p className="mt-1 text-muted-foreground">Mô tả xử lý: {tk.handler_description || '(chưa nộp)'}</p>
               <div className="mt-2">
                 {tk.is_passed === null ? (
-                  <Badge variant="outline">Chưa duyệt</Badge>
+                  <Tag tone="gray">Chưa duyệt</Tag>
                 ) : tk.is_passed ? (
-                  <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Đạt</Badge>
+                  <Tag tone="green">Đạt</Tag>
                 ) : (
-                  <Badge variant="destructive">Không đạt — {tk.admin_review_notes}</Badge>
+                  <span className="flex flex-col items-start gap-1">
+                    <Tag tone="red">Không đạt</Tag>
+                    {tk.admin_review_notes && <span className="text-sm text-muted-foreground">Lý do: {tk.admin_review_notes}</span>}
+                  </span>
                 )}
               </div>
             </div>
@@ -164,8 +184,15 @@ export default function TicketDetailPage() {
               placeholder="Lý do (bắt buộc nếu Không đạt)"
             />
             <div className="flex gap-2">
-              <Button onClick={() => handleReview(true)} disabled={actionLoading}>Đạt</Button>
-              <Button onClick={() => handleReview(false)} disabled={actionLoading} variant="destructive">Không đạt</Button>
+              <Button onClick={() => { setMessage(''); setConfirmKind('pass') }} disabled={actionLoading}>Đạt</Button>
+              <Button
+                onClick={() => {
+                  if (!reviewNotes) { setMessage('Cần nhập lý do khi đánh Không đạt'); return }
+                  setMessage(''); setConfirmKind('fail')
+                }}
+                disabled={actionLoading}
+                variant="destructive"
+              >Không đạt</Button>
             </div>
           </CardContent>
         </Card>
@@ -219,10 +246,44 @@ export default function TicketDetailPage() {
             </div>
 
             <Separator />
-            <Button onClick={handleReassign} disabled={actionLoading} className="self-start">Tái phân công</Button>
+            <Button
+              onClick={() => {
+                if (!reassignDep || !reassignHandler) { setMessage('Chọn đủ phòng ban và người xử lý'); return }
+                setMessage(''); setConfirmKind('reassign')
+              }}
+              disabled={actionLoading}
+              className="self-start"
+            >Tái phân công</Button>
           </CardContent>
         </Card>
       )}
+
+      {/* Hop thoai xac nhan: chi goi ham xu ly cu khi nguoi dung bam Xac nhan */}
+      <ConfirmDialog
+        open={confirmKind === 'pass'}
+        onOpenChange={(o) => !o && setConfirmKind(null)}
+        title={`Duyệt Đạt cho ${ticket.ticket_code}?`}
+        description="Ticket sẽ được đóng và kết quả duyệt không thể thay đổi sau khi xác nhận."
+        confirmLabel="Duyệt Đạt"
+        onConfirm={() => handleReview(true)}
+      />
+      <ConfirmDialog
+        open={confirmKind === 'fail'}
+        onOpenChange={(o) => !o && setConfirmKind(null)}
+        title={`Đánh giá Không đạt cho ${ticket.ticket_code}?`}
+        description="Kết quả duyệt không thể thay đổi. Sau đó bạn cần tái phân công ticket cho người khác xử lý."
+        confirmLabel="Xác nhận Không đạt"
+        tone="destructive"
+        onConfirm={() => handleReview(false)}
+      />
+      <ConfirmDialog
+        open={confirmKind === 'reassign'}
+        onOpenChange={(o) => !o && setConfirmKind(null)}
+        title={`Tái phân công ${ticket.ticket_code}?`}
+        description="Hệ thống sẽ tạo một lượt xử lý mới và giao ngay cho người được chọn."
+        confirmLabel="Tái phân công"
+        onConfirm={handleReassign}
+      />
     </div>
   )
 }

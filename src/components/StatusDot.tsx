@@ -9,10 +9,10 @@ export function StatusDot({ label, color }: { label: string; color: string }) {
 
 export function severityColor(level: string) {
   switch (level) {
-    case 'CRITICAL': return '#DC2626'
-    case 'HIGH': return '#EA580C'
-    case 'MEDIUM': return '#D97706'
-    case 'LOW': return '#64748B'
+    case 'LOW': return '#E5B83C'      // vang diu
+    case 'MEDIUM': return '#EE8A3C'   // cam
+    case 'HIGH': return '#E05252'     // do
+    case 'CRITICAL': return '#A82828' // do dam
     default: return '#94A3B8'
   }
 }

@@ -439,7 +439,7 @@ DECLARE
   v_ticket_status varchar;
   v_closed_at timestamp;
 BEGIN
-   IF my_role() != 'Admin' THEN
+   IF my_role() IS DISTINCT FROM 'Admin' THEN
     RAISE EXCEPTION 'NOT_AUTHORIZED';
   END IF;
   IF p_is_passed = false AND (p_admin_review_notes IS NULL OR p_admin_review_notes = '') THEN
@@ -502,11 +502,11 @@ BEGIN
 
   -- Chan neu nguoi goi khong co role Handler (truoc day chi check ownership,
   -- nen mot Viewer bi gan nham handler_user_id van submit duoc)
-  IF my_role() != 'Handler' THEN
+  IF my_role() IS DISTINCT FROM 'Handler' THEN
     RAISE EXCEPTION 'NOT_AUTHORIZED';
   END IF;
 
-  IF v_handler_id != auth.uid() THEN
+  IF v_handler_id IS DISTINCT FROM auth.uid() THEN
     RAISE EXCEPTION 'NOT_YOUR_TASK';
   END IF;
 
@@ -531,7 +531,8 @@ CREATE OR REPLACE FUNCTION public.list_user_directory()
 AS $function$
   SELECT u.user_id, u.full_name, r.role_name, u.dep_id
   FROM "user" u
-  JOIN role r ON r.role_id = u.role_id;
+  JOIN role r ON r.role_id = u.role_id
+  WHERE my_role() IS NOT NULL;
 $function$;
 
 -- Cac ham boc lai 7 view dashboard (khong ho tro RLS truc tiep) bang kiem tra
@@ -541,7 +542,7 @@ CREATE OR REPLACE FUNCTION public.get_dashboard_sla_summary()
  LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public'
 AS $function$
 BEGIN
-  IF my_role() != 'Admin' THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
+  IF my_role() IS DISTINCT FROM 'Admin' THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
   RETURN QUERY SELECT * FROM dashboard_sla_summary;
 END;
 $function$;
@@ -551,7 +552,7 @@ CREATE OR REPLACE FUNCTION public.get_dashboard_tickets_by_status()
  LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public'
 AS $function$
 BEGIN
-  IF my_role() NOT IN ('Admin','Viewer') THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
+  IF COALESCE(my_role(), '') NOT IN ('Admin','Viewer') THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
   RETURN QUERY SELECT * FROM dashboard_tickets_by_status;
 END;
 $function$;
@@ -561,7 +562,7 @@ CREATE OR REPLACE FUNCTION public.get_dashboard_tickets_by_priority()
  LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public'
 AS $function$
 BEGIN
-  IF my_role() NOT IN ('Admin','Viewer') THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
+  IF COALESCE(my_role(), '') NOT IN ('Admin','Viewer') THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
   RETURN QUERY SELECT * FROM dashboard_tickets_by_priority;
 END;
 $function$;
@@ -571,7 +572,7 @@ CREATE OR REPLACE FUNCTION public.get_dashboard_tickets_by_department()
  LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public'
 AS $function$
 BEGIN
-  IF my_role() NOT IN ('Admin','Viewer') THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
+  IF COALESCE(my_role(), '') NOT IN ('Admin','Viewer') THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
   RETURN QUERY SELECT * FROM dashboard_tickets_by_department;
 END;
 $function$;
@@ -581,7 +582,7 @@ CREATE OR REPLACE FUNCTION public.get_dashboard_ticket_trend()
  LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public'
 AS $function$
 BEGIN
-  IF my_role() != 'Viewer' THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
+  IF my_role() IS DISTINCT FROM 'Viewer' THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
   RETURN QUERY SELECT * FROM dashboard_ticket_trend;
 END;
 $function$;
@@ -591,7 +592,7 @@ CREATE OR REPLACE FUNCTION public.get_dashboard_sla_compliance()
  LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public'
 AS $function$
 BEGIN
-  IF my_role() != 'Viewer' THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
+  IF my_role() IS DISTINCT FROM 'Viewer' THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
   RETURN QUERY SELECT * FROM dashboard_sla_compliance;
 END;
 $function$;
@@ -601,7 +602,139 @@ CREATE OR REPLACE FUNCTION public.get_dashboard_dept_performance()
  LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public'
 AS $function$
 BEGIN
-  IF my_role() != 'Viewer' THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
+  IF my_role() IS DISTINCT FROM 'Viewer' THEN RAISE EXCEPTION 'NOT_AUTHORIZED'; END IF;
   RETURN QUERY SELECT * FROM dashboard_dept_performance;
 END;
 $function$
+
+-- ============================================================
+-- FIX #11: chi nguoi da dang nhap moi goi duoc cac ham (chong lot kiem tra quyen khi my_role() = NULL)
+-- ============================================================
+REVOKE EXECUTE ON FUNCTION public.review_ticket_task(integer, boolean, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.review_ticket_task(integer, boolean, text) TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.submit_ticket_task(integer, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.submit_ticket_task(integer, text) TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.create_ticket_with_task(integer, integer, character varying, integer, uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.create_ticket_with_task(integer, integer, character varying, integer, uuid) TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.reassign_ticket_task(integer, character varying, integer, uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.reassign_ticket_task(integer, character varying, integer, uuid) TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.list_user_directory() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.list_user_directory() TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_dashboard_sla_summary() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_dashboard_sla_summary() TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_dashboard_tickets_by_status() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_dashboard_tickets_by_status() TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_dashboard_tickets_by_priority() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_dashboard_tickets_by_priority() TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_dashboard_tickets_by_department() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_dashboard_tickets_by_department() TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_dashboard_ticket_trend() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_dashboard_ticket_trend() TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_dashboard_sla_compliance() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_dashboard_sla_compliance() TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_dashboard_dept_performance() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_dashboard_dept_performance() TO authenticated;
+
+-- ============================================================
+-- LICH SU SU CO THEO THIET BI (danh cho Admin va Viewer)
+-- Chi THEM 2 ham moi, khong sua bang / policy / ham nao dang co.
+--
+-- Viewer khong duoc doc bang device va incident_alert (theo thiet ke),
+-- nen 2 ham nay chay SECURITY DEFINER va tu gioi han du lieu tra ve:
+--   - Admin: thay moi canh bao cua thiet bi (ke ca canh bao sai / chua xu ly)
+--   - Viewer: chi thay cac su co DA duoc xac minh thanh ticket,
+--             khong thay so luong / ly do canh bao sai
+-- ============================================================
+
+-- 1. Danh sach thiet bi kem so lieu tong hop
+CREATE OR REPLACE FUNCTION public.list_device_summary()
+ RETURNS TABLE(
+   device_id integer, device_code character varying, device_name character varying,
+   devicetype_name character varying, location character varying,
+   management_ip character varying, device_status character varying,
+   total_alerts bigint, false_alerts bigint,
+   total_tickets bigint, open_tickets bigint, last_event_at timestamp with time zone
+ )
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+#variable_conflict use_column
+DECLARE
+  v_role varchar := my_role();
+BEGIN
+  IF COALESCE(v_role, '') NOT IN ('Admin', 'Viewer') THEN
+    RAISE EXCEPTION 'NOT_AUTHORIZED';
+  END IF;
+
+  RETURN QUERY
+  SELECT
+    d.device_id, d.device_code, d.device_name, dt.devicetype_name, d.location,
+    d.management_ip, d.status,
+    CASE WHEN v_role = 'Admin' THEN
+      (SELECT count(*) FROM incident_alert ia WHERE ia.device_ip = d.management_ip) END,
+    CASE WHEN v_role = 'Admin' THEN
+      (SELECT count(*) FROM incident_alert ia
+        WHERE ia.device_ip = d.management_ip AND ia.current_status = 'Closed_False') END,
+    (SELECT count(*) FROM ticket t JOIN incident_alert ia ON ia.incident_id = t.incident_id
+      WHERE ia.device_ip = d.management_ip),
+    (SELECT count(*) FROM ticket t JOIN incident_alert ia ON ia.incident_id = t.incident_id
+      WHERE ia.device_ip = d.management_ip AND t.status <> 'Closed'),
+    CASE WHEN v_role = 'Admin' THEN
+      (SELECT max(ia.received_at) FROM incident_alert ia WHERE ia.device_ip = d.management_ip)
+    ELSE
+      (SELECT max(ia.received_at) FROM ticket t JOIN incident_alert ia ON ia.incident_id = t.incident_id
+        WHERE ia.device_ip = d.management_ip)
+    END
+  FROM device d
+  LEFT JOIN devicetype dt ON dt.devicetype_id = d.devicetype_id
+  ORDER BY d.device_id;
+END;
+$function$;
+
+-- 2. Lich su su co cua mot thiet bi (moi dong = 1 canh bao, kem ticket neu co)
+CREATE OR REPLACE FUNCTION public.get_device_history(p_device_id integer)
+ RETURNS TABLE(
+   incident_id integer, received_at timestamp with time zone,
+   alert_summary character varying, severity_level character varying,
+   alert_status character varying, closed_reason character varying,
+   ticket_id integer, ticket_code character varying, ticket_status character varying,
+   category_name character varying, priority_level character varying, dep_name character varying,
+   ticket_created_at timestamp with time zone, sla_deadline timestamp with time zone,
+   ticket_closed_at timestamp with time zone
+ )
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+#variable_conflict use_column
+DECLARE
+  v_role varchar := my_role();
+BEGIN
+  IF COALESCE(v_role, '') NOT IN ('Admin', 'Viewer') THEN
+    RAISE EXCEPTION 'NOT_AUTHORIZED';
+  END IF;
+
+  RETURN QUERY
+  SELECT
+    ia.incident_id, ia.received_at, ia.alert_summary, ia.severity_level,
+    ia.current_status,
+    CASE WHEN v_role = 'Admin' THEN ia.closed_reason END,
+    t.ticket_id, t.ticket_code, t.status,
+    c.category_name, c.priority_level, dp.dep_name,
+    t.created_at, t.sla_deadline, t.closed_at
+  FROM device d
+  JOIN incident_alert ia ON ia.device_ip = d.management_ip
+  LEFT JOIN ticket t ON t.incident_id = ia.incident_id
+  LEFT JOIN incident_category c ON c.category_id = t.category_id
+  LEFT JOIN department dp ON dp.dep_id = t.assigned_dep_id
+  WHERE d.device_id = p_device_id
+    AND (v_role = 'Admin' OR t.ticket_id IS NOT NULL)
+  ORDER BY ia.received_at DESC;
+END;
+$function$;
+
+REVOKE EXECUTE ON FUNCTION public.list_device_summary() FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.get_device_history(integer) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.list_device_summary() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_device_history(integer) TO authenticated;
