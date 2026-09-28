@@ -160,7 +160,7 @@ export default function TicketDetailPage() {
                   <Tag tone="green">Đạt</Tag>
                 ) : (
                   <span className="flex flex-col items-start gap-1">
-                    <Tag tone="red-solid">Không đạt</Tag>
+                    <Tag tone="red">Không đạt</Tag>
                     {tk.admin_review_notes && <span className="text-sm text-muted-foreground">Lý do: {tk.admin_review_notes}</span>}
                   </span>
                 )}

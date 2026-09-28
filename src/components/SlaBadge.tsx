@@ -49,7 +49,7 @@ export function SlaBadge({ ticket }: { ticket: any }) {
   switch (state) {
     case 'met': return <Tag tone="green">{label}</Tag>
     case 'late':
-    case 'overdue': return <Tag tone="red-solid">{label}</Tag>
+    case 'overdue': return <Tag tone="red">{label}</Tag>
     case 'due_soon': return <Tag tone="amber">{label}</Tag>
     case 'on_track': return <Tag tone="blue">{label}</Tag>
     default: return <span className="text-muted-foreground">—</span>

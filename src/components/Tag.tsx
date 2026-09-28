@@ -1,19 +1,15 @@
 import { cn } from 'cn'
+import { StatusDot, severityColor } from '@/components/StatusDot'
 
-// The trang thai dang "o chu nhat bo goc nho" (thay cho vien thuoc bo tron).
-// - soft: nen nhat + chu dam (muc do thap / trang thai thong thuong)
-// - medium: nen vua + chu trang
-// - solid: nen dam + chu trang (muc do cao, can chu y)
+// The trang thai dang "o chu nhat bo goc nho", nen nhat + chu dam de de doc ma khong choi.
+// Rieng muc do (severity) dung cham tron mau (xem SeverityTag).
 
 export type TagTone =
-  | 'red-soft' | 'red-medium' | 'red-solid' | 'red-strong'
-  | 'blue' | 'amber' | 'green' | 'gray' | 'orange'
+  | 'red' | 'blue' | 'amber' | 'green' | 'gray' | 'orange'
 
 const TONE_CLASS: Record<TagTone, string> = {
-  'red-soft': 'bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300',
-  'red-medium': 'bg-rose-400 text-white dark:bg-rose-500/70',
-  'red-solid': 'bg-rose-500 text-white',
-  'red-strong': 'bg-rose-700 text-white',
+  // Do diu: nen rat nhat + vien mong, khong gay choi mat
+  red: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30',
   blue: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
   amber: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
   green: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
@@ -35,17 +31,12 @@ export function Tag({ tone, children, className }: { tone: TagTone; children: Re
   )
 }
 
-const SEVERITY_TONE: Record<string, TagTone> = {
-  LOW: 'red-soft',
-  MEDIUM: 'red-medium',
-  HIGH: 'red-solid',
-  CRITICAL: 'red-strong',
-}
 const SEVERITY_LABEL: Record<string, string> = { LOW: 'Low', MEDIUM: 'Medium', HIGH: 'High', CRITICAL: 'Critical' }
 
+// Muc do hien thi dang cham tron: Low vang, Medium cam, High do, Critical do dam
 export function SeverityTag({ level }: { level?: string | null }) {
   if (!level) return <span className="text-muted-foreground">—</span>
-  return <Tag tone={SEVERITY_TONE[level] || 'gray'}>{SEVERITY_LABEL[level] || level}</Tag>
+  return <StatusDot label={SEVERITY_LABEL[level] || level} color={severityColor(level)} />
 }
 
 const TICKET_STATUS_TONE: Record<string, TagTone> = { Assigned: 'blue', 'Pending Review': 'amber', Closed: 'green' }
@@ -74,5 +65,5 @@ export function IncidentStatusTag({ status }: { status?: string | null }) {
 export function TaskResultTag({ task }: { task: { submitted_at?: string | null; is_passed?: boolean | null } }) {
   if (!task.submitted_at) return <Tag tone="gray">Chưa nộp</Tag>
   if (task.is_passed === null || task.is_passed === undefined) return <Tag tone="amber">Chờ duyệt</Tag>
-  return task.is_passed ? <Tag tone="green">Đạt</Tag> : <Tag tone="red-solid">Không đạt</Tag>
+  return task.is_passed ? <Tag tone="green">Đạt</Tag> : <Tag tone="red">Không đạt</Tag>
 }
