@@ -81,14 +81,14 @@ export default function TicketsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-[40px] leading-[1.1] font-semibold tracking-[-0.03em]">Danh sách Ticket</h1>
+        <h1 className="text-[30px] leading-[1.1] font-semibold tracking-[-0.03em]">Danh sách Ticket</h1>
         <p className="text-muted-foreground">Tự động cập nhật mỗi 15 giây</p>
       </div>
 
-      <Card>
-        <CardContent className="flex flex-wrap items-end gap-4">
+      <Card size="sm">
+        <CardContent className="flex flex-wrap items-end gap-3">
           <div className="flex flex-col gap-2">
             <Label>Tìm kiếm</Label>
             <Input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="Mã ticket, nội dung..." className="w-56" />
@@ -149,7 +149,7 @@ export default function TicketsPage() {
           ) : filteredTickets.length === 0 ? (
             <p className="p-6 text-muted-foreground">Không có ticket nào khớp bộ lọc.</p>
           ) : (
-            <Table maxHeight="max-h-[max(320px,calc(100dvh-26.5rem))]">
+            <Table maxHeight="max-h-[max(320px,calc(100dvh-22rem))]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Mã ticket</TableHead>

@@ -76,10 +76,10 @@ export default function IncidentsPage() {
   if (loadingProfile) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-[40px] leading-[1.1] font-semibold tracking-[-0.03em]">Hàng chờ cảnh báo</h1>
-        <p className="text-muted-foreground">Tự động cập nhật mỗi 15 giây</p>
+        <h1 className="text-[30px] leading-[1.1] font-semibold tracking-[-0.03em]">Hàng chờ cảnh báo</h1>
+        <p className="text-sm text-muted-foreground">Tự động cập nhật mỗi 15 giây</p>
       </div>
 
       <Card>

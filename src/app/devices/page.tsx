@@ -60,21 +60,21 @@ export default function DevicesPage() {
   const devicesWithOpen = devices.filter((d) => Number(d.open_tickets) > 0).length
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-[40px] leading-[1.1] font-semibold tracking-[-0.03em]">Thiết bị</h1>
+        <h1 className="text-[30px] leading-[1.1] font-semibold tracking-[-0.03em]">Thiết bị</h1>
         <p className="text-muted-foreground">Theo dõi lịch sử sự cố của từng thiết bị</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Thiết bị đang quản lý" value={devices.length} color="blue" />
         <StatCard label="Thiết bị có sự cố đang mở" value={devicesWithOpen} color="red" />
         <StatCard label="Ticket đang mở" value={openTickets} color="amber" />
         <StatCard label="Tổng số sự cố (ticket)" value={totalTickets} color="orange" />
       </div>
 
-      <Card>
-        <CardContent className="flex flex-wrap items-end gap-4">
+      <Card size="sm">
+        <CardContent className="flex flex-wrap items-end gap-3">
           <div className="flex flex-col gap-2">
             <Label>Tìm kiếm</Label>
             <Input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="Mã, tên, IP, vị trí..." className="w-64" />
@@ -102,7 +102,7 @@ export default function DevicesPage() {
           ) : visible.length === 0 ? (
             <p className="p-6 text-muted-foreground">Không có thiết bị nào khớp.</p>
           ) : (
-            <Table maxHeight="max-h-[max(320px,calc(100dvh-32rem))]">
+            <Table maxHeight="max-h-[max(320px,calc(100dvh-28rem))]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Thiết bị</TableHead>
