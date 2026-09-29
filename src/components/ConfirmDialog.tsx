@@ -38,11 +38,11 @@ export function ConfirmDialog({
           </div>
           <div className="mt-6 flex justify-end gap-2">
             <AlertDialog.Close
-              render={<Button variant="secondary" className="h-10 rounded-full border-0 px-5 text-sm" />}
+              render={<Button variant="secondary" className="h-10 rounded-[17px] border-0 px-5 text-sm" />}
             >Hủy</AlertDialog.Close>
             <Button
               variant={destructive ? 'destructive' : 'default'}
-              className={`h-10 rounded-full border-0 px-5 text-sm ${destructive ? 'bg-[#E05252] text-white hover:bg-[#CF4646] dark:bg-[#E05252] dark:hover:bg-[#CF4646]' : ''}`}
+              className={`h-10 rounded-[17px] border-0 px-5 text-sm ${destructive ? 'bg-[#E05252] text-white hover:bg-[#CF4646] dark:bg-[#E05252] dark:hover:bg-[#CF4646]' : ''}`}
               onClick={() => { onOpenChange(false); onConfirm() }}
             >
               {confirmLabel}

@@ -6,6 +6,7 @@ import { StatusDot, severityColor } from '@/components/StatusDot'
 
 export type TagTone =
   | 'red' | 'blue' | 'amber' | 'green' | 'gray' | 'orange'
+  | 'pending' | 'failed'
 
 const TONE_CLASS: Record<TagTone, string> = {
   // Do diu: nen rat nhat + vien mong, khong gay choi mat
@@ -15,6 +16,9 @@ const TONE_CLASS: Record<TagTone, string> = {
   green: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
   gray: 'bg-slate-100 text-slate-600 dark:bg-slate-500/20 dark:text-slate-300',
   orange: 'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300',
+  // Thong nhat toan he thong: "Cho duyet" nen vang chu xam den (khong den dac); "Khong dat" nen do dam diu chu trang, khong vien
+  pending: 'bg-amber-100 text-stone-700 dark:bg-amber-500/20 dark:text-amber-100',
+  failed: 'bg-[#C24848] text-white dark:bg-[#C24848] dark:text-white',
 }
 
 export function Tag({ tone, children, className }: { tone: TagTone; children: React.ReactNode; className?: string }) {
@@ -39,7 +43,7 @@ export function SeverityTag({ level }: { level?: string | null }) {
   return <StatusDot label={SEVERITY_LABEL[level] || level} color={severityColor(level)} />
 }
 
-const TICKET_STATUS_TONE: Record<string, TagTone> = { Assigned: 'blue', 'Pending Review': 'amber', Closed: 'green' }
+const TICKET_STATUS_TONE: Record<string, TagTone> = { Assigned: 'blue', 'Pending Review': 'pending', Closed: 'green' }
 
 export function TicketStatusTag({ status }: { status?: string | null }) {
   if (!status) return <span className="text-muted-foreground">—</span>
@@ -64,6 +68,6 @@ export function IncidentStatusTag({ status }: { status?: string | null }) {
 // Ket qua cua mot task: Chua nop / Cho duyet / Dat / Khong dat
 export function TaskResultTag({ task }: { task: { submitted_at?: string | null; is_passed?: boolean | null } }) {
   if (!task.submitted_at) return <Tag tone="gray">Chưa nộp</Tag>
-  if (task.is_passed === null || task.is_passed === undefined) return <Tag tone="amber">Chờ duyệt</Tag>
-  return task.is_passed ? <Tag tone="green">Đạt</Tag> : <Tag tone="red">Không đạt</Tag>
+  if (task.is_passed === null || task.is_passed === undefined) return <Tag tone="pending">Chờ duyệt</Tag>
+  return task.is_passed ? <Tag tone="green">Đạt</Tag> : <Tag tone="failed">Không đạt</Tag>
 }

@@ -186,7 +186,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
               {statusData.map((s) => (
                 <div key={s.key} className="flex items-center justify-between text-sm">
                   <LegendDot color={s.color} label={s.label} />
-                  <span className="font-medium">{s.value}% <span className="text-xs font-normal text-muted-foreground">({s.n})</span></span>
+                  <span className="font-[650]">{s.value}% <span className="text-xs font-[520] text-muted-foreground">({s.n})</span></span>
                 </div>
               ))}
             </div>
@@ -206,13 +206,13 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
             </div>
             <div className="flex flex-col gap-2.5 text-sm">
               <InfoRow label="Thiết bị có sự cố mở"
-                value={<span className={devices && devices.withOpen > 0 ? 'font-semibold text-red-700 dark:text-red-300' : 'font-semibold'}>{devices?.withOpen ?? '—'}</span>} />
-              {role === 'Admin' && <InfoRow label="Cảnh báo chờ phân loại" value={<span className="font-semibold">{pendingAlerts ?? '—'}</span>} />}
-              <InfoRow label="Ticket quá hạn" value={<span className="font-semibold">{k.overdueOpen}</span>} />
+                value={<span className={devices && devices.withOpen > 0 ? 'font-[780] text-red-700 dark:text-red-300' : 'font-[780]'}>{devices?.withOpen ?? '—'}</span>} />
+              {role === 'Admin' && <InfoRow label="Cảnh báo chờ phân loại" value={<span className="font-[780]">{pendingAlerts ?? '—'}</span>} />}
+              <InfoRow label="Ticket quá hạn" value={<span className="font-[780]">{k.overdueOpen}</span>} />
               <InfoRow label="Phân loại AI"
                 value={<span className="inline-flex items-center gap-1 whitespace-nowrap text-muted-foreground"><Bot className="h-3.5 w-3.5" />Chưa kích hoạt</span>} />
             </div>
-            <Link href="/devices" className="mt-auto inline-flex h-10 items-center justify-center rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-primary/85">
+            <Link href="/devices" className="mt-auto inline-flex h-10 items-center justify-center rounded-[17px] bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-primary/85">
               Xem thiết bị
             </Link>
           </CardContent>
@@ -351,7 +351,7 @@ function SummaryRow({ icon, label, value }: { icon: React.ReactNode; label: stri
     <div className="flex items-center gap-3 text-sm">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/15">{icon}</span>
       <span className="flex-1 whitespace-nowrap text-white/80">{label}</span>
-      <span className="font-semibold">{value}</span>
+      <span className="font-[780]">{value}</span>
     </div>
   )
 }
@@ -369,7 +369,7 @@ function KpiCard({ label, icon, value, delta, goodWhen, progress, hint, danger }
           <span className="text-muted-foreground">{icon}</span>
         </div>
         <div className="flex items-end gap-2">
-          <span className={`text-[40px] leading-none font-normal tracking-[-0.03em] ${danger ? 'text-red-700 dark:text-red-300' : ''}`}>{value}</span>
+          <span className={`text-[40px] leading-none font-[520] tracking-[-0.03em] ${danger ? 'text-red-700 dark:text-red-300' : ''}`}>{value}</span>
           {delta !== null && (
             <span className={`mb-1 inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-medium ${good ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300'}`}>
               {delta >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
@@ -390,10 +390,10 @@ function KpiCard({ label, icon, value, delta, goodWhen, progress, hint, danger }
 
 function Segmented({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: [string, string][] }) {
   return (
-    <div className="flex gap-1 rounded-full bg-[var(--surface-soft)] p-1">
+    <div className="flex gap-1 rounded-[14px] bg-[var(--surface-soft)] p-1">
       {options.map(([v, l]) => (
         <button key={v} onClick={() => onChange(v)}
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${value === v ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
+          className={`rounded-[10px] px-3 py-1 text-xs font-medium transition-colors ${value === v ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
           {l}
         </button>
       ))}

@@ -103,7 +103,7 @@ export default function MyTasksPage() {
 
       <Card>
         <CardContent className="flex flex-wrap items-center gap-3">
-          <div className="flex flex-wrap gap-1 rounded-full bg-[var(--surface-soft)] p-1">
+          <div className="flex flex-wrap gap-1 rounded-[15px] bg-[var(--surface-soft)] p-1">
             {TABS.map((t) => (
               <Button
                 key={t.key}

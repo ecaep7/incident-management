@@ -114,16 +114,16 @@ export default function DashboardPage() {
         </div>
         {role === 'Admin' && (
           <div className="flex gap-2">
-            <Link href="/incidents" className="inline-flex h-10 items-center gap-2 rounded-full border bg-background px-4 text-sm font-medium hover:bg-muted">
+            <Link href="/incidents" className="inline-flex h-10 items-center gap-2 rounded-[17px] border bg-background px-4 text-sm font-medium hover:bg-muted">
               <AlertTriangle className="h-4 w-4" />Hàng chờ cảnh báo
             </Link>
-            <Link href="/work-queue" className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85">
+            <Link href="/work-queue" className="inline-flex h-10 items-center gap-2 rounded-[17px] bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85">
               <Inbox className="h-4 w-4" />Việc cần xử lý
             </Link>
           </div>
         )}
         {role === 'Viewer' && (
-          <Link href="/tickets" className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85">
+          <Link href="/tickets" className="inline-flex h-10 items-center gap-2 rounded-[17px] bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85">
             <Ticket className="h-4 w-4" />Danh sách ticket
           </Link>
         )}
@@ -133,16 +133,16 @@ export default function DashboardPage() {
         <>
           <div className="flex flex-wrap items-center gap-2">
             <Select value={preset} onValueChange={(v) => applyPreset(v ?? 'all')}>
-              <SelectTrigger className="w-44 rounded-full"><SelectValue>{PRESET_LABEL[preset]}</SelectValue></SelectTrigger>
+              <SelectTrigger className="w-44 rounded-[15px]"><SelectValue>{PRESET_LABEL[preset]}</SelectValue></SelectTrigger>
               <SelectContent>
                 {Object.entries(PRESET_LABEL).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Input type="date" aria-label="Từ ngày" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPreset('custom') }} className="w-40 rounded-full" />
+            <Input type="date" aria-label="Từ ngày" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPreset('custom') }} className="w-40 rounded-[15px]" />
             <span className="text-muted-foreground">→</span>
-            <Input type="date" aria-label="Đến ngày" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPreset('custom') }} className="w-40 rounded-full" />
+            <Input type="date" aria-label="Đến ngày" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPreset('custom') }} className="w-40 rounded-[15px]" />
             <Select value={depFilter} onValueChange={(v) => setDepFilter(v ?? 'all')}>
-              <SelectTrigger className="w-64 rounded-full"><SelectValue>{selectedDepName}</SelectValue></SelectTrigger>
+              <SelectTrigger className="w-64 rounded-[15px]"><SelectValue>{selectedDepName}</SelectValue></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả phòng ban</SelectItem>
                 {departments.map((d) => <SelectItem key={d.dep_id} value={String(d.dep_id)}>{d.dep_name}</SelectItem>)}
@@ -150,7 +150,7 @@ export default function DashboardPage() {
             </Select>
             {(preset !== 'all' || depFilter !== 'all') && (
               <button onClick={() => { applyPreset('all'); setDepFilter('all') }}
-                className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground">
+                className="inline-flex h-9 items-center gap-1.5 rounded-[15px] px-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground">
                 <RotateCcw className="h-3.5 w-3.5" />Xóa bộ lọc
               </button>
             )}
@@ -176,19 +176,19 @@ export default function DashboardPage() {
       <CardContent>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div>
-            <div className="text-3xl font-normal tracking-[-0.02em]">{myPerf.total_tasks}</div>
+            <div className="text-3xl font-[520] tracking-[-0.02em]">{myPerf.total_tasks}</div>
             <p className="text-sm text-muted-foreground">Tổng số task</p>
           </div>
           <div>
-            <div className="text-3xl font-normal tracking-[-0.02em] text-green-600">{myPerf.passed}</div>
+            <div className="text-3xl font-[520] tracking-[-0.02em] text-green-600">{myPerf.passed}</div>
             <p className="text-sm text-muted-foreground">Đạt</p>
           </div>
           <div>
-            <div className="text-3xl font-normal tracking-[-0.02em] text-destructive">{myPerf.failed}</div>
+            <div className="text-3xl font-[520] tracking-[-0.02em] text-destructive">{myPerf.failed}</div>
             <p className="text-sm text-muted-foreground">Không đạt</p>
           </div>
           <div>
-            <div className="text-3xl font-normal tracking-[-0.02em]">
+            <div className="text-3xl font-[520] tracking-[-0.02em]">
               {myPerf.avg_hours_to_submit ? myPerf.avg_hours_to_submit.toFixed(1) : '—'}
               {myPerf.avg_hours_to_submit ? <span className="text-base font-normal text-muted-foreground"> giờ</span> : null}
             </div>
