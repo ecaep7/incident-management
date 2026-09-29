@@ -3,11 +3,20 @@
 import * as React from "react"
 import { cn } from "cn"
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+// maxHeight: neu truyen (vd 'max-h-[65vh]') thi bang co chieu cao co dinh, cuon ben trong va dong tieu de cot dinh o tren
+function Table({ className, maxHeight, ...props }: React.ComponentProps<"table"> & { maxHeight?: string }) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      className={cn(
+        "relative w-full overflow-x-auto",
+        maxHeight && cn(
+          "scroll-thin overflow-y-auto",
+          // tieu de cot dinh o tren khi cuon
+          "[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-card [&_th]:shadow-[inset_0_-1px_0_var(--border)]",
+          maxHeight,
+        ),
+      )}
     >
       <table
         data-slot="table"

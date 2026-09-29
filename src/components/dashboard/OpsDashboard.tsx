@@ -281,7 +281,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
         <Card>
           <CardHeader><CardTitle className="text-base">Hiệu suất theo phòng ban</CardTitle></CardHeader>
           <CardContent className="p-0">
-            <Table>
+            <Table maxHeight="max-h-[300px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Phòng ban</TableHead>
