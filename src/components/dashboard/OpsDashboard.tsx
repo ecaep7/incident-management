@@ -386,7 +386,7 @@ function SummaryRow({ icon, label, value }: { icon: React.ReactNode; label: stri
   )
 }
 
-function KpiCard({ label, icon, value, delta, goodWhen, progress, hint, danger }: {
+export function KpiCard({ label, icon, value, delta, goodWhen, progress, hint, danger }: {
   label: string; icon: React.ReactNode; value: string; delta: number | null
   goodWhen: 'up' | 'down'; progress: number; hint?: string; danger?: boolean
 }) {

@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select'
 import { Inbox, AlertTriangle, Ticket, RotateCcw } from 'lucide-react'
 import { OpsDashboard, type OpsTicket } from '@/components/dashboard/OpsDashboard'
+import { ReportDashboard } from '@/components/dashboard/ReportDashboard'
 
 const chartConfig = { total: { label: 'Số lượng' } } satisfies ChartConfig
 
@@ -101,6 +102,34 @@ export default function DashboardPage() {
 
   if (loading) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
 
+  // Bo loc dung chung (thoi gian + phong ban). Viewer: dat cung hang voi nut Xuat bao cao
+  const filterControls = (
+    <>
+      <Select value={preset} onValueChange={(v) => applyPreset(v ?? 'all')}>
+        <SelectTrigger className="w-44 rounded-[15px]"><SelectValue>{PRESET_LABEL[preset]}</SelectValue></SelectTrigger>
+        <SelectContent>
+          {Object.entries(PRESET_LABEL).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
+        </SelectContent>
+      </Select>
+      <Input type="date" aria-label="Từ ngày" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPreset('custom') }} className="w-40 rounded-[15px]" />
+      <span className="text-muted-foreground">→</span>
+      <Input type="date" aria-label="Đến ngày" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPreset('custom') }} className="w-40 rounded-[15px]" />
+      <Select value={depFilter} onValueChange={(v) => setDepFilter(v ?? 'all')}>
+        <SelectTrigger className="w-64 rounded-[15px]"><SelectValue>{selectedDepName}</SelectValue></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Tất cả phòng ban</SelectItem>
+          {departments.map((d) => <SelectItem key={d.dep_id} value={String(d.dep_id)}>{d.dep_name}</SelectItem>)}
+        </SelectContent>
+      </Select>
+      {(preset !== 'all' || depFilter !== 'all') && (
+        <button onClick={() => { applyPreset('all'); setDepFilter('all') }}
+          className="inline-flex h-9 items-center gap-1.5 rounded-[15px] px-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground">
+          <RotateCcw className="h-3.5 w-3.5" />Xóa bộ lọc
+        </button>
+      )}
+    </>
+  )
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -109,7 +138,7 @@ export default function DashboardPage() {
             {greeting()}, <span className="text-primary">{firstName}</span>
           </h1>
           <p className="text-muted-foreground">
-            {role === 'Handler' ? 'Tổng quan hiệu suất xử lý của bạn' : 'Tổng quan tình hình sự cố an toàn thông tin'}
+            {role === 'Handler' ? 'Tổng quan hiệu suất xử lý của bạn' : role === 'Viewer' ? 'Báo cáo tình hình xử lý sự cố an toàn thông tin' : 'Tổng quan tình hình sự cố an toàn thông tin'}
           </p>
         </div>
         {role === 'Admin' && (
@@ -131,31 +160,12 @@ export default function DashboardPage() {
 
       {(role === 'Admin' || role === 'Viewer') && (
         <>
-          <div className="flex flex-wrap items-center gap-2">
-            <Select value={preset} onValueChange={(v) => applyPreset(v ?? 'all')}>
-              <SelectTrigger className="w-44 rounded-[15px]"><SelectValue>{PRESET_LABEL[preset]}</SelectValue></SelectTrigger>
-              <SelectContent>
-                {Object.entries(PRESET_LABEL).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Input type="date" aria-label="Từ ngày" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPreset('custom') }} className="w-40 rounded-[15px]" />
-            <span className="text-muted-foreground">→</span>
-            <Input type="date" aria-label="Đến ngày" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPreset('custom') }} className="w-40 rounded-[15px]" />
-            <Select value={depFilter} onValueChange={(v) => setDepFilter(v ?? 'all')}>
-              <SelectTrigger className="w-64 rounded-[15px]"><SelectValue>{selectedDepName}</SelectValue></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả phòng ban</SelectItem>
-                {departments.map((d) => <SelectItem key={d.dep_id} value={String(d.dep_id)}>{d.dep_name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            {(preset !== 'all' || depFilter !== 'all') && (
-              <button onClick={() => { applyPreset('all'); setDepFilter('all') }}
-                className="inline-flex h-9 items-center gap-1.5 rounded-[15px] px-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground">
-                <RotateCcw className="h-3.5 w-3.5" />Xóa bộ lọc
-              </button>
-            )}
-          </div>
-
+          {role === 'Viewer' ? (
+            // Viewer (lanh dao / giam sat): dashboard dang bao cao
+            <ReportDashboard tickets={tickets} categories={categories} departments={departments} filter={filter} filterControls={filterControls} />
+          ) : (
+          <>
+          <div className="flex flex-wrap items-center gap-2">{filterControls}</div>
           <OpsDashboard
             role={role}
             tickets={tickets}
@@ -166,6 +176,8 @@ export default function DashboardPage() {
             pendingAlerts={pendingAlerts}
             filter={filter}
           />
+          </>
+          )}
         </>
       )}
 
