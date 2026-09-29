@@ -83,7 +83,7 @@ export default function TicketsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold">Danh sách Ticket</h1>
+        <h1 className="text-[40px] leading-[1.1] font-semibold tracking-[-0.03em]">Danh sách Ticket</h1>
         <p className="text-muted-foreground">Tự động cập nhật mỗi 15 giây</p>
       </div>
 
@@ -165,7 +165,7 @@ export default function TicketsPage() {
                 {filteredTickets.map((t) => (
                   <TableRow key={t.ticket_id}>
                     <TableCell>
-                      <Link href={`/tickets/${t.ticket_id}`} className="font-medium text-primary hover:underline">
+                      <Link href={`/tickets/${t.ticket_id}`} className="font-semibold text-primary hover:underline">
                         {t.ticket_code}
                       </Link>
                     </TableCell>

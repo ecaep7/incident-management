@@ -71,7 +71,7 @@ export default function DeviceDetailPage() {
           <p className="text-sm text-muted-foreground">
             <Link href="/devices" className="hover:underline">Thiết bị</Link> / {device.device_code}
           </p>
-          <h1 className="text-2xl font-semibold">{device.device_name || device.device_code}</h1>
+          <h1 className="text-[40px] leading-[1.1] font-semibold tracking-[-0.03em]">{device.device_name || device.device_code}</h1>
           <p className="mt-1 text-muted-foreground">
             {device.devicetype_name} · {device.management_ip}{device.location ? ` · ${device.location}` : ''}
           </p>
@@ -136,7 +136,7 @@ export default function DeviceDetailPage() {
                     </TableCell>
                     <TableCell>
                       {h.ticket_id
-                        ? <Link href={`/tickets/${h.ticket_id}`} className="font-medium text-primary hover:underline">{h.ticket_code}</Link>
+                        ? <Link href={`/tickets/${h.ticket_id}`} className="font-semibold text-primary hover:underline">{h.ticket_code}</Link>
                         : <span className="text-muted-foreground">—</span>}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{h.category_name || '—'}</TableCell>

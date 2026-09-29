@@ -88,7 +88,7 @@ export default function MyTasksPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold">Việc của tôi</h1>
+        <h1 className="text-[40px] leading-[1.1] font-semibold tracking-[-0.03em]">Việc của tôi</h1>
         <p className="text-muted-foreground">
           Xin chào {profile?.full_name}{profile?.department?.dep_name ? ` · ${profile.department.dep_name}` : ''} · tự động cập nhật mỗi 15 giây
         </p>
@@ -103,7 +103,7 @@ export default function MyTasksPage() {
 
       <Card>
         <CardContent className="flex flex-wrap items-center gap-3">
-          <div className="flex flex-wrap gap-1 rounded-lg bg-muted p-1">
+          <div className="flex flex-wrap gap-1 rounded-[15px] bg-[var(--surface-soft)] p-1">
             {TABS.map((t) => (
               <Button
                 key={t.key}
@@ -151,7 +151,7 @@ export default function MyTasksPage() {
                 {visible.map((t) => (
                   <TableRow key={t.task_id}>
                     <TableCell>
-                      <Link href={`/my-tasks/${t.task_id}`} className="font-medium text-primary hover:underline">
+                      <Link href={`/my-tasks/${t.task_id}`} className="font-semibold text-primary hover:underline">
                         {t.ticket?.ticket_code || `Ticket #${t.ticket_id}`}
                       </Link>
                     </TableCell>

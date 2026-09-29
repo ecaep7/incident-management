@@ -62,7 +62,7 @@ export default function DevicesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold">Thiết bị</h1>
+        <h1 className="text-[40px] leading-[1.1] font-semibold tracking-[-0.03em]">Thiết bị</h1>
         <p className="text-muted-foreground">Theo dõi lịch sử sự cố của từng thiết bị</p>
       </div>
 
@@ -119,7 +119,7 @@ export default function DevicesPage() {
                 {visible.map((d) => (
                   <TableRow key={d.device_id}>
                     <TableCell>
-                      <Link href={`/devices/${d.device_id}`} className="font-medium text-primary hover:underline">
+                      <Link href={`/devices/${d.device_id}`} className="font-semibold text-primary hover:underline">
                         {d.device_name || d.device_code}
                       </Link>
                       <p className="text-xs text-muted-foreground">{d.device_code}</p>
@@ -127,14 +127,14 @@ export default function DevicesPage() {
                     <TableCell className="text-muted-foreground">{d.devicetype_name || '—'}</TableCell>
                     <TableCell className="text-muted-foreground">{d.location || '—'}</TableCell>
                     <TableCell className="text-muted-foreground">{d.management_ip}</TableCell>
-                    <TableCell className="text-right tabular-nums">{d.total_tickets}</TableCell>
+                    <TableCell className="text-right">{d.total_tickets}</TableCell>
                     <TableCell>
                       {Number(d.open_tickets) > 0
                         ? <Tag tone="red">{d.open_tickets} đang mở</Tag>
                         : <span className="text-muted-foreground">—</span>}
                     </TableCell>
                     {isAdmin && (
-                      <TableCell className="text-right tabular-nums text-muted-foreground">
+                      <TableCell className="text-right text-muted-foreground">
                         {d.false_alerts}/{d.total_alerts}
                       </TableCell>
                     )}

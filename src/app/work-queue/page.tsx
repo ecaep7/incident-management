@@ -63,7 +63,7 @@ export default function WorkQueuePage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold">Việc cần xử lý</h1>
+        <h1 className="text-[40px] leading-[1.1] font-semibold tracking-[-0.03em]">Việc cần xử lý</h1>
         <p className="text-muted-foreground">Tổng hợp những việc đang chờ Admin · tự động cập nhật mỗi 15 giây</p>
       </div>
 
@@ -118,8 +118,8 @@ function QueueCard({ title, empty, items, render }: {
 function TicketRow({ t }: { t: any }) {
   return (
     <Link href={`/tickets/${t.ticket_id}`} className="flex items-center gap-3 rounded-md border p-3 text-sm hover:bg-muted">
-      <span className="font-medium text-primary">{t.ticket_code}</span>
-      <span className="flex-1 truncate">{t.incident_alert?.alert_summary || '—'}</span>
+      <span className="font-semibold text-primary">{t.ticket_code}</span>
+      <span className="flex-1 truncate font-medium">{t.incident_alert?.alert_summary || '—'}</span>
       <TicketStatusTag status={t.status} />
       <SlaBadge ticket={t} />
     </Link>

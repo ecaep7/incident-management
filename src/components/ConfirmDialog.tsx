@@ -26,7 +26,7 @@ export function ConfirmDialog({
     <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
       <AlertDialog.Portal>
         <AlertDialog.Backdrop className="fixed inset-0 z-50 bg-black/40 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0" />
-        <AlertDialog.Popup className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-[11.5px] bg-background p-6 shadow-xl ring-1 ring-foreground/10 transition-all duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0">
+        <AlertDialog.Popup className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-[24px] bg-background p-6 shadow-xl ring-1 ring-foreground/10 transition-all duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0">
           <div className="flex gap-4">
             <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${destructive ? 'bg-red-50 text-red-600 dark:bg-red-500/15' : 'bg-blue-50 text-blue-600 dark:bg-blue-500/15'}`}>
               {destructive ? <AlertTriangle className="h-5 w-5" /> : <Info className="h-5 w-5" />}
@@ -38,11 +38,11 @@ export function ConfirmDialog({
           </div>
           <div className="mt-6 flex justify-end gap-2">
             <AlertDialog.Close
-              render={<Button variant="secondary" className="h-10 rounded-[8px] border-0 px-5 text-sm" />}
+              render={<Button variant="secondary" className="h-10 rounded-[17px] border-0 px-5 text-sm" />}
             >Hủy</AlertDialog.Close>
             <Button
               variant={destructive ? 'destructive' : 'default'}
-              className={`h-10 rounded-[8px] border-0 px-5 text-sm ${destructive ? 'bg-[#E05252] text-white hover:bg-[#CF4646] dark:bg-[#E05252] dark:hover:bg-[#CF4646]' : ''}`}
+              className={`h-10 rounded-[17px] border-0 px-5 text-sm ${destructive ? 'bg-[#E05252] text-white hover:bg-[#CF4646] dark:bg-[#E05252] dark:hover:bg-[#CF4646]' : ''}`}
               onClick={() => { onOpenChange(false); onConfirm() }}
             >
               {confirmLabel}
