@@ -61,13 +61,13 @@ export default function WorkQueuePage() {
   ] as const
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-[40px] leading-[1.1] font-semibold tracking-[-0.03em]">Việc cần xử lý</h1>
-        <p className="text-muted-foreground">Tổng hợp những việc đang chờ Admin · tự động cập nhật mỗi 15 giây</p>
+        <h1 className="text-[30px] leading-[1.1] font-semibold tracking-[-0.03em]">Việc cần xử lý</h1>
+        <p className="text-sm text-muted-foreground">Tổng hợp những việc đang chờ Admin · tự động cập nhật mỗi 15 giây</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {summary.map((s) => <StatCard key={s.label} label={s.label} value={s.value} color={s.color} />)}
       </div>
 

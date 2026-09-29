@@ -111,7 +111,7 @@ export default function DevicesPage() {
                   <TableHead>IP quản lý</TableHead>
                   <TableHead className="text-right">Sự cố</TableHead>
                   <TableHead>Đang mở</TableHead>
-                  {isAdmin && <TableHead className="text-right">Cảnh báo sai</TableHead>}
+                  {isAdmin && <TableHead className="text-center">Cảnh báo sai</TableHead>}
                   <TableHead>Sự cố gần nhất</TableHead>
                 </TableRow>
               </TableHeader>
