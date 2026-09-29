@@ -128,6 +128,12 @@
   --block-mint: #D3EBD7;
   --block-peach: #F6E0CF;
   --surface-soft: #F5F7FA;
+  /* Mau bieu do (da kiem tra do phan biet mau & tuong phan) */
+  --series-1: #005BAA;
+  --series-2: #C9701C;
+  --status-assigned: #2563EB;
+  --status-pending: #D97706;
+  --status-closed: #16A34A;
 }
 .dark {
   --block-blue: #16304F;
@@ -137,6 +143,11 @@
   --block-mint: #1C3526;
   --block-peach: #3D2B1F;
   --surface-soft: #131E30;
+  --series-1: #3B9AE1;
+  --series-2: #C9701C;
+  --status-assigned: #3B82F6;
+  --status-pending: #D97706;
+  --status-closed: #16A34A;
 }
 
 @layer base {

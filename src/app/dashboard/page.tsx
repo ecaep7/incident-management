@@ -1,37 +1,44 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { useProfile } from '@/lib/useProfile'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table'
-import {
   ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent,
 } from '@/components/ui/chart'
-import {
-  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, AreaChart, Area,
-} from 'recharts'
-import { StatusDot, severityColor, ticketStatusColor } from '@/components/StatusDot'
-import { StatCard } from '@/components/StatCard'
-import { Button } from '@/components/ui/button'
+import { PieChart, Pie, Cell } from 'recharts'
+import { StatusDot } from '@/components/StatusDot'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import { computeStats, filterTickets, type DashTicket } from '@/lib/dashboardStats'
+import { Inbox, AlertTriangle, Ticket, RotateCcw } from 'lucide-react'
+import { OpsDashboard, type OpsTicket } from '@/components/dashboard/OpsDashboard'
 
 const chartConfig = { total: { label: 'Số lượng' } } satisfies ChartConfig
+
+function greeting() {
+  const h = new Date().getHours()
+  if (h < 11) return 'Chào buổi sáng'
+  if (h < 14) return 'Chào buổi trưa'
+  if (h < 18) return 'Chào buổi chiều'
+  return 'Chào buổi tối'
+}
+
+const toIso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
 export default function DashboardPage() {
   const { profile, loading } = useProfile()
   const role = profile?.role?.role_name
 
-  const [tickets, setTickets] = useState<DashTicket[]>([])
+  const [tickets, setTickets] = useState<OpsTicket[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [departments, setDepartments] = useState<any[]>([])
+  const [handlerByTicket, setHandlerByTicket] = useState<Map<number, string>>(new Map())
+  const [devices, setDevices] = useState<{ total: number; withOpen: number } | null>(null)
+  const [pendingAlerts, setPendingAlerts] = useState<number | null>(null)
   const [myPerf, setMyPerf] = useState<any>(null)
 
   // Bo loc (chi ap dung cho Admin / Viewer)
@@ -44,16 +51,29 @@ export default function DashboardPage() {
     if (!role) return
     async function load() {
       if (role === 'Admin' || role === 'Viewer') {
-        // Lay du lieu tho (Admin/Viewer deu duoc doc bang ticket theo RLS)
-        // roi tinh so lieu o giao dien de loc duoc theo thoi gian va phong ban
-        const [t, c, d] = await Promise.all([
-          supabase.from('ticket').select('ticket_id, status, category_id, assigned_dep_id, created_at, closed_at, sla_deadline'),
-          supabase.from('incident_category').select('category_id, priority_level'),
+        // Chi DOC du lieu (theo RLS cua nguoi dang nhap), so lieu tinh o giao dien
+        const [t, c, d, tasks, dir, dev] = await Promise.all([
+          supabase.from('ticket').select('ticket_id, ticket_code, status, category_id, assigned_dep_id, created_at, closed_at, sla_deadline, incident_alert(alert_summary)'),
+          supabase.from('incident_category').select('category_id, category_name, priority_level'),
           supabase.from('department').select('dep_id, dep_name').order('dep_id'),
+          supabase.from('ticket_task').select('ticket_id, handler_user_id, created_at').order('created_at', { ascending: true }),
+          supabase.rpc('list_user_directory'),
+          supabase.rpc('list_device_summary'),
         ])
-        setTickets((t.data as DashTicket[]) || [])
+        setTickets((t.data as any as OpsTicket[]) || [])
         setCategories(c.data || [])
         setDepartments(d.data || [])
+        const names = new Map<string, string>((dir.data || []).map((u: any) => [u.user_id, u.full_name]))
+        const latest = new Map<number, string>()
+        ;(tasks.data || []).forEach((tk: any) => latest.set(tk.ticket_id, names.get(tk.handler_user_id) || ''))
+        setHandlerByTicket(latest)
+        if (dev.data) {
+          setDevices({ total: dev.data.length, withOpen: dev.data.filter((x: any) => Number(x.open_tickets) > 0).length })
+        }
+        if (role === 'Admin') {
+          const { count } = await supabase.from('incident_alert').select('incident_id', { count: 'exact', head: true }).in('current_status', ['NEW', 'Verifying'])
+          setPendingAlerts(count ?? 0)
+        }
       }
       if (role === 'Handler') {
         const { data: mp } = await supabase.from('my_task_performance').select('*').single()
@@ -63,222 +83,90 @@ export default function DashboardPage() {
     load()
   }, [role])
 
-  const stats = useMemo(
-    () => computeStats(filterTickets(tickets, { from: dateFrom, to: dateTo, depId: depFilter }), categories, departments),
-    [tickets, categories, departments, dateFrom, dateTo, depFilter],
-  )
-  const { byStatus, byPriority, byDept, slaSummary, trend, slaCompliance, deptPerf } = stats
+  const filter = useMemo(() => ({ from: dateFrom, to: dateTo, depId: depFilter }), [dateFrom, dateTo, depFilter])
 
   function applyPreset(v: string) {
     setPreset(v)
     if (v === 'all') { setDateFrom(''); setDateTo(''); return }
     if (v === 'custom') return
-    const days = Number(v)
     const from = new Date()
-    from.setDate(from.getDate() - days + 1)
-    const toIso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    from.setDate(from.getDate() - Number(v) + 1)
     setDateFrom(toIso(from))
     setDateTo(toIso(new Date()))
   }
 
   const PRESET_LABEL: Record<string, string> = { all: 'Toàn bộ thời gian', '7': '7 ngày qua', '30': '30 ngày qua', custom: 'Tùy chọn' }
   const selectedDepName = depFilter === 'all' ? 'Tất cả phòng ban' : departments.find((d) => String(d.dep_id) === depFilter)?.dep_name
+  const firstName = (profile?.full_name || '').trim().split(/\s+/).slice(-2).join(' ')
 
   if (loading) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-[40px] leading-[1.05] font-light tracking-[-0.035em]">Dashboard</h1>
-        <p className="text-muted-foreground">Chào {profile?.full_name}</p>
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-[40px] leading-[1.05] font-light tracking-[-0.035em]">
+            {greeting()}, <span className="text-primary">{firstName}</span>
+          </h1>
+          <p className="text-muted-foreground">
+            {role === 'Handler' ? 'Tổng quan hiệu suất xử lý của bạn' : 'Tổng quan tình hình sự cố an toàn thông tin'}
+          </p>
+        </div>
+        {role === 'Admin' && (
+          <div className="flex gap-2">
+            <Link href="/incidents" className="inline-flex h-10 items-center gap-2 rounded-full border bg-background px-4 text-sm font-medium hover:bg-muted">
+              <AlertTriangle className="h-4 w-4" />Hàng chờ cảnh báo
+            </Link>
+            <Link href="/work-queue" className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85">
+              <Inbox className="h-4 w-4" />Việc cần xử lý
+            </Link>
+          </div>
+        )}
+        {role === 'Viewer' && (
+          <Link href="/tickets" className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85">
+            <Ticket className="h-4 w-4" />Danh sách ticket
+          </Link>
+        )}
       </div>
 
       {(role === 'Admin' || role === 'Viewer') && (
-        <Card>
-          <CardContent className="flex flex-wrap items-end gap-4">
-            <div className="flex flex-col gap-2">
-              <Label>Khoảng thời gian</Label>
-              <Select value={preset} onValueChange={(v) => applyPreset(v ?? 'all')}>
-                <SelectTrigger className="w-44"><SelectValue>{PRESET_LABEL[preset]}</SelectValue></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(PRESET_LABEL).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label>Từ ngày</Label>
-              <Input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPreset('custom') }} className="w-40" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label>Đến ngày</Label>
-              <Input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPreset('custom') }} className="w-40" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label>Phòng ban</Label>
-              <Select value={depFilter} onValueChange={(v) => setDepFilter(v ?? 'all')}>
-                <SelectTrigger className="w-64"><SelectValue>{selectedDepName}</SelectValue></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả phòng ban</SelectItem>
-                  {departments.map((d) => <SelectItem key={d.dep_id} value={String(d.dep_id)}>{d.dep_name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button onClick={() => { applyPreset('all'); setDepFilter('all') }}>Xóa bộ lọc</Button>
-            <p className="ml-auto text-sm text-muted-foreground">
-              Đang tính trên {byStatus.reduce((n, x) => n + x.total, 0)} / {tickets.length} ticket (theo ngày tạo ticket)
-            </p>
-          </CardContent>
-        </Card>
-      )}
+        <>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={preset} onValueChange={(v) => applyPreset(v ?? 'all')}>
+              <SelectTrigger className="w-44 rounded-full"><SelectValue>{PRESET_LABEL[preset]}</SelectValue></SelectTrigger>
+              <SelectContent>
+                {Object.entries(PRESET_LABEL).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Input type="date" aria-label="Từ ngày" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPreset('custom') }} className="w-40 rounded-full" />
+            <span className="text-muted-foreground">→</span>
+            <Input type="date" aria-label="Đến ngày" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPreset('custom') }} className="w-40 rounded-full" />
+            <Select value={depFilter} onValueChange={(v) => setDepFilter(v ?? 'all')}>
+              <SelectTrigger className="w-64 rounded-full"><SelectValue>{selectedDepName}</SelectValue></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả phòng ban</SelectItem>
+                {departments.map((d) => <SelectItem key={d.dep_id} value={String(d.dep_id)}>{d.dep_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            {(preset !== 'all' || depFilter !== 'all') && (
+              <button onClick={() => { applyPreset('all'); setDepFilter('all') }}
+                className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground">
+                <RotateCcw className="h-3.5 w-3.5" />Xóa bộ lọc
+              </button>
+            )}
+          </div>
 
-      {role === 'Admin' && slaSummary && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <StatCard label="Ticket đang mở" value={slaSummary.total_open} color="blue" />
-          <StatCard label="Đã quá hạn SLA" value={slaSummary.total_breached} color="red" />
-        </div>
-      )}
-
-      {(role === 'Admin' || role === 'Viewer') && (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <Card>
-            <CardHeader><CardTitle className="text-base">Ticket theo trạng thái</CardTitle></CardHeader>
-            <CardContent className="flex items-center gap-4">
-              <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[180px] flex-1">
-                <PieChart>
-                  <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                  <Pie data={byStatus} dataKey="total" nameKey="status" innerRadius={45} strokeWidth={3}>
-                    {byStatus.map((entry) => (
-                      <Cell key={entry.status} fill={ticketStatusColor(entry.status)} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ChartContainer>
-              <div className="flex flex-col gap-2">
-                {byStatus.map((x) => (
-                  <StatusDot key={x.status} label={`${x.status} — ${x.total}`} color={ticketStatusColor(x.status)} />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader><CardTitle className="text-base">Ticket theo mức độ</CardTitle></CardHeader>
-            <CardContent>
-              <ChartContainer config={chartConfig} className="h-[180px] w-full">
-                <BarChart data={byPriority} layout="vertical" margin={{ left: 0 }}>
-                  <CartesianGrid horizontal={false} />
-                  <XAxis type="number" hide />
-                  <YAxis dataKey="priority_level" type="category" tickLine={false} axisLine={false} width={72} fontSize={12} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="total" radius={4}>
-                    {byPriority.map((entry) => (
-                      <Cell key={entry.priority_level} fill={severityColor(entry.priority_level)} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader><CardTitle className="text-base">Ticket theo phòng ban</CardTitle></CardHeader>
-            <CardContent>
-              <ChartContainer config={chartConfig} className="h-45 w-full">
-                <BarChart data={byDept} layout="vertical" margin={{ left: 0 }}>
-                  <CartesianGrid horizontal={false} />
-                  <XAxis type="number" hide />
-                  <YAxis dataKey="dep_name" type="category" tickLine={false} axisLine={false} width={110} fontSize={11} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="total" radius={4}>
-                    {byDept.map((entry, i) => (
-                      <Cell key={entry.dep_name} fill={`var(--chart-${(i % 5) + 1})`} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {role === 'Viewer' && (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <Card>
-            <CardHeader><CardTitle className="text-base">Xu hướng ticket theo tuần</CardTitle></CardHeader>
-            <CardContent>
-              <ChartContainer config={chartConfig} className="h-[220px] w-full">
-                <AreaChart data={trend}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="week_start"
-                    tickLine={false}
-                    axisLine={false}
-                    fontSize={12}
-                    tickFormatter={(v) => new Date(v).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}
-                  />
-                  <YAxis hide />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Area dataKey="total" type="monotone" fill="var(--primary)" fillOpacity={0.15} stroke="var(--primary)" strokeWidth={2} />
-                </AreaChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader><CardTitle className="text-base">Tỷ lệ tuân thủ SLA</CardTitle></CardHeader>
-            <CardContent className="flex items-center gap-4">
-              <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-45 flex-1">
-                <PieChart>
-                  <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                  <Pie
-                    data={[
-                      { name: 'Đúng hạn', value: slaCompliance?.closed_on_time ?? 0, color: '#16A34A' },
-                      { name: 'Quá hạn', value: (slaCompliance?.total_closed ?? 0) - (slaCompliance?.closed_on_time ?? 0), color: '#DC2626' },
-                    ]}
-                    dataKey="value" nameKey="name" innerRadius={45} strokeWidth={3}
-                  >
-                    <Cell fill="#16A34A" />
-                    <Cell fill="#DC2626" />
-                  </Pie>
-                </PieChart>
-              </ChartContainer>
-              <div className="flex flex-col gap-2">
-                <div className="text-3xl font-light tracking-[-0.03em]">{slaCompliance?.compliance_rate_percent ?? 0}%</div>
-                <StatusDot label={`Đúng hạn — ${slaCompliance?.closed_on_time ?? 0}`} color="#16A34A" />
-                <StatusDot
-                  label={`Quá hạn — ${(slaCompliance?.total_closed ?? 0) - (slaCompliance?.closed_on_time ?? 0)}`}
-                  color="#DC2626"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="lg:col-span-2">
-            <CardHeader><CardTitle className="text-base">Hiệu suất theo phòng ban</CardTitle></CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Phòng ban</TableHead>
-                    <TableHead className="text-right">Ticket đã đóng</TableHead>
-                    <TableHead className="text-right">TG xử lý trung bình</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {deptPerf.map((d) => (
-                    <TableRow key={d.dep_name}>
-                      <TableCell className="font-medium">{d.dep_name}</TableCell>
-                      <TableCell className="text-right">{d.total_closed}</TableCell>
-                      <TableCell className="text-right">
-                        {d.avg_hours_to_close ? `${d.avg_hours_to_close.toFixed(1)} giờ` : '—'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
+          <OpsDashboard
+            role={role}
+            tickets={tickets}
+            categories={categories}
+            departments={departments}
+            handlerByTicket={handlerByTicket}
+            devices={devices}
+            pendingAlerts={pendingAlerts}
+            filter={filter}
+          />
+        </>
       )}
 
 {role === 'Handler' && myPerf && (
