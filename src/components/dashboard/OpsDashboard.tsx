@@ -186,7 +186,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
               {statusData.map((s) => (
                 <div key={s.key} className="flex items-center justify-between text-sm">
                   <LegendDot color={s.color} label={s.label} />
-                  <span className="font-medium tabular-nums">{s.value}% <span className="text-xs font-normal text-muted-foreground">({s.n})</span></span>
+                  <span className="font-medium">{s.value}% <span className="text-xs font-normal text-muted-foreground">({s.n})</span></span>
                 </div>
               ))}
             </div>
@@ -240,7 +240,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
                       <div className="flex items-start justify-between gap-2">
                         <TicketStatusTag status={t.status} />
                         <div className="text-right">
-                          <p className="text-xs font-semibold tabular-nums">{t.ticket_code}</p>
+                          <p className="text-xs font-semibold">{t.ticket_code}</p>
                           <p className="text-xs text-muted-foreground">{fmtAge(t.created_at)}</p>
                         </div>
                       </div>
@@ -333,8 +333,8 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
                 {stats.deptPerf.map((d) => (
                   <TableRow key={d.dep_name}>
                     <TableCell className="max-w-[160px] truncate font-medium">{d.dep_name}</TableCell>
-                    <TableCell className="text-right tabular-nums">{d.total_closed}</TableCell>
-                    <TableCell className="text-right tabular-nums text-muted-foreground">{fmtHours(d.avg_hours_to_close)}</TableCell>
+                    <TableCell className="text-right">{d.total_closed}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{fmtHours(d.avg_hours_to_close)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -351,7 +351,7 @@ function SummaryRow({ icon, label, value }: { icon: React.ReactNode; label: stri
     <div className="flex items-center gap-3 text-sm">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/15">{icon}</span>
       <span className="flex-1 whitespace-nowrap text-white/80">{label}</span>
-      <span className="font-semibold tabular-nums">{value}</span>
+      <span className="font-semibold">{value}</span>
     </div>
   )
 }
@@ -369,7 +369,7 @@ function KpiCard({ label, icon, value, delta, goodWhen, progress, hint, danger }
           <span className="text-muted-foreground">{icon}</span>
         </div>
         <div className="flex items-end gap-2">
-          <span className={`text-[40px] leading-none font-normal tracking-[-0.03em] tabular-nums ${danger ? 'text-red-700 dark:text-red-300' : ''}`}>{value}</span>
+          <span className={`text-[40px] leading-none font-normal tracking-[-0.03em] ${danger ? 'text-red-700 dark:text-red-300' : ''}`}>{value}</span>
           {delta !== null && (
             <span className={`mb-1 inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-medium ${good ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300'}`}>
               {delta >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}

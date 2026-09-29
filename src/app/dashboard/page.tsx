@@ -105,7 +105,7 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-[40px] leading-[1.1] font-normal tracking-[-0.03em]">
+          <h1 className="text-[40px] leading-[1.1] font-semibold tracking-[-0.03em]">
             {greeting()}, <span className="text-primary">{firstName}</span>
           </h1>
           <p className="text-muted-foreground">
