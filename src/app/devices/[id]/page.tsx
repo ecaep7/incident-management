@@ -136,7 +136,7 @@ export default function DeviceDetailPage() {
                     </TableCell>
                     <TableCell>
                       {h.ticket_id
-                        ? <Link href={`/tickets/${h.ticket_id}`} className="font-medium text-primary hover:underline">{h.ticket_code}</Link>
+                        ? <Link href={`/tickets/${h.ticket_id}`} className="font-semibold text-primary hover:underline">{h.ticket_code}</Link>
                         : <span className="text-muted-foreground">—</span>}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{h.category_name || '—'}</TableCell>

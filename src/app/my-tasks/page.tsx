@@ -151,7 +151,7 @@ export default function MyTasksPage() {
                 {visible.map((t) => (
                   <TableRow key={t.task_id}>
                     <TableCell>
-                      <Link href={`/my-tasks/${t.task_id}`} className="font-medium text-primary hover:underline">
+                      <Link href={`/my-tasks/${t.task_id}`} className="font-semibold text-primary hover:underline">
                         {t.ticket?.ticket_code || `Ticket #${t.ticket_id}`}
                       </Link>
                     </TableCell>

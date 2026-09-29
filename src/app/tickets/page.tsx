@@ -165,7 +165,7 @@ export default function TicketsPage() {
                 {filteredTickets.map((t) => (
                   <TableRow key={t.ticket_id}>
                     <TableCell>
-                      <Link href={`/tickets/${t.ticket_id}`} className="font-medium text-primary hover:underline">
+                      <Link href={`/tickets/${t.ticket_id}`} className="font-semibold text-primary hover:underline">
                         {t.ticket_code}
                       </Link>
                     </TableCell>

@@ -118,8 +118,8 @@ function QueueCard({ title, empty, items, render }: {
 function TicketRow({ t }: { t: any }) {
   return (
     <Link href={`/tickets/${t.ticket_id}`} className="flex items-center gap-3 rounded-md border p-3 text-sm hover:bg-muted">
-      <span className="font-medium text-primary">{t.ticket_code}</span>
-      <span className="flex-1 truncate">{t.incident_alert?.alert_summary || '—'}</span>
+      <span className="font-semibold text-primary">{t.ticket_code}</span>
+      <span className="flex-1 truncate font-medium">{t.incident_alert?.alert_summary || '—'}</span>
       <TicketStatusTag status={t.status} />
       <SlaBadge ticket={t} />
     </Link>

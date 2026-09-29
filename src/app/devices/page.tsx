@@ -119,7 +119,7 @@ export default function DevicesPage() {
                 {visible.map((d) => (
                   <TableRow key={d.device_id}>
                     <TableCell>
-                      <Link href={`/devices/${d.device_id}`} className="font-medium text-primary hover:underline">
+                      <Link href={`/devices/${d.device_id}`} className="font-semibold text-primary hover:underline">
                         {d.device_name || d.device_code}
                       </Link>
                       <p className="text-xs text-muted-foreground">{d.device_code}</p>

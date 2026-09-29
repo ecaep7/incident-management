@@ -29,7 +29,7 @@ export function StatCard({ label, value, color, hint, onClick, active }: {
       onClick={onClick}
     >
       <CardContent className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-muted-foreground">{label}</span>
+        <span className="text-[13px] font-medium text-muted-foreground">{label}</span>
         <span className={cn('text-4xl font-light tracking-[-0.03em] tabular-nums', style.number)}>{value}</span>
         {hint && <span className="text-xs text-muted-foreground">{hint}</span>}
       </CardContent>
