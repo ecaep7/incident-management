@@ -14,6 +14,7 @@ import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, AreaChart, Area,
 } from 'recharts'
 import { StatusDot, severityColor, ticketStatusColor } from '@/components/StatusDot'
+import { StatCard } from '@/components/StatCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -88,7 +89,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-light tracking-[-0.03em]">Dashboard</h1>
+        <h1 className="text-[40px] leading-[1.05] font-light tracking-[-0.035em]">Dashboard</h1>
         <p className="text-muted-foreground">Chào {profile?.full_name}</p>
       </div>
 
@@ -132,24 +133,8 @@ export default function DashboardPage() {
 
       {role === 'Admin' && slaSummary && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Ticket đang mở</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-light tracking-[-0.03em]">{slaSummary.total_open}</div>
-            </CardContent>
-          </Card>
-          <Card className={slaSummary.total_breached > 0 ? 'border-destructive/50 bg-destructive/5' : ''}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Đã quá hạn SLA</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className={`text-3xl font-light tracking-[-0.03em] ${slaSummary.total_breached > 0 ? 'text-destructive' : ''}`}>
-                {slaSummary.total_breached}
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard label="Ticket đang mở" value={slaSummary.total_open} color="blue" />
+          <StatCard label="Đã quá hạn SLA" value={slaSummary.total_breached} color="red" />
         </div>
       )}
 

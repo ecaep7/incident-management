@@ -97,7 +97,7 @@ export default function MyTaskDetailPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-sm text-muted-foreground">Việc của tôi / Task #{task.task_id}</p>
-          <h1 className="text-3xl font-light tracking-[-0.03em]">{ticket.ticket_code}</h1>
+          <h1 className="text-[40px] leading-[1.05] font-light tracking-[-0.035em]">{ticket.ticket_code}</h1>
           <p className="mt-1 text-muted-foreground">{alert.alert_summary}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
