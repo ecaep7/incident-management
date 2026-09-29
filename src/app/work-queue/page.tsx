@@ -63,7 +63,7 @@ export default function WorkQueuePage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold">Việc cần xử lý</h1>
+        <h1 className="text-3xl font-light tracking-[-0.03em]">Việc cần xử lý</h1>
         <p className="text-muted-foreground">Tổng hợp những việc đang chờ Admin · tự động cập nhật mỗi 15 giây</p>
       </div>
 

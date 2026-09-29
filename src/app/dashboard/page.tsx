@@ -88,7 +88,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <h1 className="text-3xl font-light tracking-[-0.03em]">Dashboard</h1>
         <p className="text-muted-foreground">Chào {profile?.full_name}</p>
       </div>
 
@@ -137,7 +137,7 @@ export default function DashboardPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Ticket đang mở</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-semibold">{slaSummary.total_open}</div>
+              <div className="text-3xl font-light tracking-[-0.03em]">{slaSummary.total_open}</div>
             </CardContent>
           </Card>
           <Card className={slaSummary.total_breached > 0 ? 'border-destructive/50 bg-destructive/5' : ''}>
@@ -145,7 +145,7 @@ export default function DashboardPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Đã quá hạn SLA</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className={`text-3xl font-semibold ${slaSummary.total_breached > 0 ? 'text-destructive' : ''}`}>
+              <div className={`text-3xl font-light tracking-[-0.03em] ${slaSummary.total_breached > 0 ? 'text-destructive' : ''}`}>
                 {slaSummary.total_breached}
               </div>
             </CardContent>
@@ -258,7 +258,7 @@ export default function DashboardPage() {
                 </PieChart>
               </ChartContainer>
               <div className="flex flex-col gap-2">
-                <div className="text-3xl font-semibold">{slaCompliance?.compliance_rate_percent ?? 0}%</div>
+                <div className="text-3xl font-light tracking-[-0.03em]">{slaCompliance?.compliance_rate_percent ?? 0}%</div>
                 <StatusDot label={`Đúng hạn — ${slaCompliance?.closed_on_time ?? 0}`} color="#16A34A" />
                 <StatusDot
                   label={`Quá hạn — ${(slaCompliance?.total_closed ?? 0) - (slaCompliance?.closed_on_time ?? 0)}`}
@@ -303,19 +303,19 @@ export default function DashboardPage() {
       <CardContent>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div>
-            <div className="text-3xl font-semibold">{myPerf.total_tasks}</div>
+            <div className="text-3xl font-light tracking-[-0.03em]">{myPerf.total_tasks}</div>
             <p className="text-sm text-muted-foreground">Tổng số task</p>
           </div>
           <div>
-            <div className="text-3xl font-semibold text-green-600">{myPerf.passed}</div>
+            <div className="text-3xl font-light tracking-[-0.03em] text-green-600">{myPerf.passed}</div>
             <p className="text-sm text-muted-foreground">Đạt</p>
           </div>
           <div>
-            <div className="text-3xl font-semibold text-destructive">{myPerf.failed}</div>
+            <div className="text-3xl font-light tracking-[-0.03em] text-destructive">{myPerf.failed}</div>
             <p className="text-sm text-muted-foreground">Không đạt</p>
           </div>
           <div>
-            <div className="text-3xl font-semibold">
+            <div className="text-3xl font-light tracking-[-0.03em]">
               {myPerf.avg_hours_to_submit ? myPerf.avg_hours_to_submit.toFixed(1) : '—'}
               {myPerf.avg_hours_to_submit ? <span className="text-base font-normal text-muted-foreground"> giờ</span> : null}
             </div>
