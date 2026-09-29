@@ -134,6 +134,11 @@
   --status-assigned: #2563EB;
   --status-pending: #D97706;
   --status-closed: #16A34A;
+  /* Moi phong ban mot sac xanh (dam -> nhat), gan theo dep_id nen khong doi mau khi loc */
+  --dep-1: #0A3A6B;
+  --dep-2: #005BAA;
+  --dep-3: #2E7FCC;
+  --dep-4: #6FAAE0;
 }
 .dark {
   --block-blue: #16304F;
@@ -148,6 +153,10 @@
   --status-assigned: #3B82F6;
   --status-pending: #D97706;
   --status-closed: #16A34A;
+  --dep-1: #BFDDF7;
+  --dep-2: #8EC3F0;
+  --dep-3: #5AA3E3;
+  --dep-4: #2F7FC6;
 }
 
 @layer base {

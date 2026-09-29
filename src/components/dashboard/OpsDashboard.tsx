@@ -83,6 +83,11 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
   const k = computeKpis(inPeriod, categories)
   const pk = prevTickets ? computeKpis(prevTickets, categories) : null
   const stats = computeStats(inPeriod, categories, departments)
+  // Mau theo phong ban: gan theo thu tu dep_id (co dinh), khong theo thu hang so luong
+  const depColor = new Map(
+    [...departments].sort((x, y) => x.dep_id - y.dep_id).map((d, i) => [d.dep_name, `var(--dep-${(i % 4) + 1})`]),
+  )
+  const colorOfDep = (name: string) => depColor.get(name) || 'var(--muted-foreground)'
   const trend = trendSeries(byDep, gran, filter.from || undefined, filter.to || undefined)
 
   const statusData = STATUS_META.map((s) => {
@@ -237,6 +242,72 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
         </Card>
       </div>
 
+      {/* Phan tich chi tiet */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Card>
+          <CardHeader><CardTitle className="text-base">Ticket theo mức độ</CardTitle></CardHeader>
+          <CardContent>
+            <ChartContainer config={countConfig} className="h-[180px] w-full">
+              <BarChart data={stats.byPriority} layout="vertical" margin={{ left: 0 }}>
+                <CartesianGrid horizontal={false} />
+                <XAxis type="number" hide allowDecimals={false} />
+                <YAxis dataKey="priority_level" type="category" tickLine={false} axisLine={false} width={72} fontSize={11} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="total" radius={4}>
+                  {stats.byPriority.map((e) => <Cell key={e.priority_level} fill={severityColor(e.priority_level)} />)}
+                </Bar>
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="text-base">Ticket theo phòng ban</CardTitle></CardHeader>
+          <CardContent>
+            <ChartContainer config={countConfig} className="h-[180px] w-full">
+              <BarChart data={stats.byDept} layout="vertical" margin={{ left: 0 }}>
+                <CartesianGrid horizontal={false} />
+                <XAxis type="number" hide allowDecimals={false} />
+                <YAxis dataKey="dep_name" type="category" tickLine={false} axisLine={false} width={120} fontSize={11} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="total" radius={4}>
+                  {stats.byDept.map((e) => <Cell key={e.dep_name} fill={colorOfDep(e.dep_name)} />)}
+                </Bar>
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="text-base">Hiệu suất theo phòng ban</CardTitle></CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Phòng ban</TableHead>
+                  <TableHead className="text-right">Đã đóng</TableHead>
+                  <TableHead className="text-right">TG TB</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {stats.deptPerf.map((d) => (
+                  <TableRow key={d.dep_name}>
+                    <TableCell className="max-w-[180px] font-medium">
+                      <span className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-[3px]" style={{ backgroundColor: colorOfDep(d.dep_name) }} />
+                        <span className="truncate" title={d.dep_name}>{d.dep_name}</span>
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">{d.total_closed}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{fmtHours(d.avg_hours_to_close)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Ticket dang mo + loi tat */}
       <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-12">
         <Card className="xl:col-span-9">
@@ -300,65 +371,6 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
             <Bot className="h-4 w-4" /> Trợ lý AI sẽ có ở đây
           </div>
         </div>
-      </div>
-
-      {/* Phan tich chi tiet */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card>
-          <CardHeader><CardTitle className="text-base">Ticket theo mức độ</CardTitle></CardHeader>
-          <CardContent>
-            <ChartContainer config={countConfig} className="h-[180px] w-full">
-              <BarChart data={stats.byPriority} layout="vertical" margin={{ left: 0 }}>
-                <CartesianGrid horizontal={false} />
-                <XAxis type="number" hide allowDecimals={false} />
-                <YAxis dataKey="priority_level" type="category" tickLine={false} axisLine={false} width={72} fontSize={11} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="total" radius={4}>
-                  {stats.byPriority.map((e) => <Cell key={e.priority_level} fill={severityColor(e.priority_level)} />)}
-                </Bar>
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader><CardTitle className="text-base">Ticket theo phòng ban</CardTitle></CardHeader>
-          <CardContent>
-            <ChartContainer config={countConfig} className="h-[180px] w-full">
-              <BarChart data={stats.byDept} layout="vertical" margin={{ left: 0 }}>
-                <CartesianGrid horizontal={false} />
-                <XAxis type="number" hide allowDecimals={false} />
-                <YAxis dataKey="dep_name" type="category" tickLine={false} axisLine={false} width={120} fontSize={11} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="total" radius={4} fill="var(--series-1)" />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader><CardTitle className="text-base">Hiệu suất theo phòng ban</CardTitle></CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Phòng ban</TableHead>
-                  <TableHead className="text-right">Đã đóng</TableHead>
-                  <TableHead className="text-right">TG TB</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {stats.deptPerf.map((d) => (
-                  <TableRow key={d.dep_name}>
-                    <TableCell className="max-w-[160px] truncate font-medium">{d.dep_name}</TableCell>
-                    <TableCell className="text-right">{d.total_closed}</TableCell>
-                    <TableCell className="text-right text-muted-foreground">{fmtHours(d.avg_hours_to_close)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
       </div>
     </div>
   )
