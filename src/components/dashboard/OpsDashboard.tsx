@@ -179,7 +179,25 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
               <RadialBarChart data={statusData} innerRadius="38%" outerRadius="100%" startAngle={90} endAngle={-270} barSize={12}>
                 <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
                 <RadialBar dataKey="value" background={{ fill: 'var(--surface-soft)' }} cornerRadius={8} />
-                <ChartTooltip content={<ChartTooltipContent hideLabel nameKey="label" />} />
+                <ChartTooltip
+                  cursor={false}
+                  content={
+                    <ChartTooltipContent
+                      hideLabel
+                      className="min-w-[12rem]"
+                      // Hien ten trang thai (khong phai ten truong "value"), kem % va so ticket
+                      formatter={(value, _name, item) => (
+                        <div className="flex w-full items-center gap-2 whitespace-nowrap">
+                          <span className="h-2.5 w-2.5 shrink-0 rounded-[2px]" style={{ backgroundColor: item.payload.color }} />
+                          <span className="text-muted-foreground">{item.payload.label}</span>
+                          <span className="ml-auto pl-3 font-[650] text-foreground">
+                            {value}% <span className="font-normal text-muted-foreground">({item.payload.n} ticket)</span>
+                          </span>
+                        </div>
+                      )}
+                    />
+                  }
+                />
               </RadialBarChart>
             </ChartContainer>
             <div className="flex flex-col gap-1.5">
