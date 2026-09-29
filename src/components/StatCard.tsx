@@ -33,8 +33,8 @@ export function StatCard({ label, value, color, hint, onClick, active }: {
       )}
       onClick={onClick}
     >
-      <span className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-foreground/70">{label}</span>
-      <span className={cn('text-5xl font-light leading-none tracking-[-0.04em] tabular-nums', style.number)}>{value}</span>
+      <span className="text-[13px] font-medium text-foreground/70">{label}</span>
+      <span className={cn('text-5xl font-normal leading-none tracking-[-0.03em] tabular-nums', style.number)}>{value}</span>
       {hint && <span className="text-xs text-foreground/70">{hint}</span>}
     </div>
   )

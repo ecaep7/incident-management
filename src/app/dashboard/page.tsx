@@ -105,7 +105,7 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-[40px] leading-[1.05] font-light tracking-[-0.035em]">
+          <h1 className="text-[40px] leading-[1.1] font-normal tracking-[-0.03em]">
             {greeting()}, <span className="text-primary">{firstName}</span>
           </h1>
           <p className="text-muted-foreground">
@@ -176,19 +176,19 @@ export default function DashboardPage() {
       <CardContent>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div>
-            <div className="text-3xl font-light tracking-[-0.03em]">{myPerf.total_tasks}</div>
+            <div className="text-3xl font-normal tracking-[-0.02em]">{myPerf.total_tasks}</div>
             <p className="text-sm text-muted-foreground">Tổng số task</p>
           </div>
           <div>
-            <div className="text-3xl font-light tracking-[-0.03em] text-green-600">{myPerf.passed}</div>
+            <div className="text-3xl font-normal tracking-[-0.02em] text-green-600">{myPerf.passed}</div>
             <p className="text-sm text-muted-foreground">Đạt</p>
           </div>
           <div>
-            <div className="text-3xl font-light tracking-[-0.03em] text-destructive">{myPerf.failed}</div>
+            <div className="text-3xl font-normal tracking-[-0.02em] text-destructive">{myPerf.failed}</div>
             <p className="text-sm text-muted-foreground">Không đạt</p>
           </div>
           <div>
-            <div className="text-3xl font-light tracking-[-0.03em]">
+            <div className="text-3xl font-normal tracking-[-0.02em]">
               {myPerf.avg_hours_to_submit ? myPerf.avg_hours_to_submit.toFixed(1) : '—'}
               {myPerf.avg_hours_to_submit ? <span className="text-base font-normal text-muted-foreground"> giờ</span> : null}
             </div>

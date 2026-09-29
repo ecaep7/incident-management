@@ -83,7 +83,7 @@ export default function TicketsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-[40px] leading-[1.05] font-light tracking-[-0.035em]">Danh sách Ticket</h1>
+        <h1 className="text-[40px] leading-[1.1] font-normal tracking-[-0.03em]">Danh sách Ticket</h1>
         <p className="text-muted-foreground">Tự động cập nhật mỗi 15 giây</p>
       </div>
 

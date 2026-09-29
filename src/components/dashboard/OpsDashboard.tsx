@@ -240,7 +240,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
                       <div className="flex items-start justify-between gap-2">
                         <TicketStatusTag status={t.status} />
                         <div className="text-right">
-                          <p className="font-mono text-[11px] font-medium">{t.ticket_code}</p>
+                          <p className="text-xs font-semibold tabular-nums">{t.ticket_code}</p>
                           <p className="text-xs text-muted-foreground">{fmtAge(t.created_at)}</p>
                         </div>
                       </div>
@@ -365,11 +365,11 @@ function KpiCard({ label, icon, value, delta, goodWhen, progress, hint, danger }
     <Card>
       <CardContent className="flex h-full flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
-          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">{label}</span>
+          <span className="text-[13px] font-medium text-muted-foreground">{label}</span>
           <span className="text-muted-foreground">{icon}</span>
         </div>
         <div className="flex items-end gap-2">
-          <span className={`text-[40px] leading-none font-light tracking-[-0.04em] tabular-nums ${danger ? 'text-red-700 dark:text-red-300' : ''}`}>{value}</span>
+          <span className={`text-[40px] leading-none font-normal tracking-[-0.03em] tabular-nums ${danger ? 'text-red-700 dark:text-red-300' : ''}`}>{value}</span>
           {delta !== null && (
             <span className={`mb-1 inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-medium ${good ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300'}`}>
               {delta >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
