@@ -134,7 +134,7 @@ export default function DevicesPage() {
                         : <span className="text-muted-foreground">—</span>}
                     </TableCell>
                     {isAdmin && (
-                      <TableCell className="text-right text-muted-foreground">
+                      <TableCell className="text-center text-muted-foreground">
                         {d.false_alerts}/{d.total_alerts}
                       </TableCell>
                     )}

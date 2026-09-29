@@ -71,7 +71,7 @@ export default function DeviceDetailPage() {
           <p className="text-sm text-muted-foreground">
             <Link href="/devices" className="hover:underline">Thiết bị</Link> / {device.device_code}
           </p>
-          <h1 className="text-[40px] leading-[1.1] font-semibold tracking-[-0.03em]">{device.device_name || device.device_code}</h1>
+          <h1 className="text-[30px] leading-[1.1] font-semibold tracking-[-0.03em]">{device.device_name || device.device_code}</h1>
           <p className="mt-1 text-muted-foreground">
             {device.devicetype_name} · {device.management_ip}{device.location ? ` · ${device.location}` : ''}
           </p>
