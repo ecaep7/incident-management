@@ -102,7 +102,7 @@ export default function DevicesPage() {
           ) : visible.length === 0 ? (
             <p className="p-6 text-muted-foreground">Không có thiết bị nào khớp.</p>
           ) : (
-            <Table>
+            <Table maxHeight="max-h-[max(320px,calc(100dvh-32rem))]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Thiết bị</TableHead>

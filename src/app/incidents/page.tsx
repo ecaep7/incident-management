@@ -144,7 +144,7 @@ export default function IncidentsPage() {
           ) : filteredIncidents.length === 0 ? (
             <p className="p-6 text-muted-foreground">Không có cảnh báo nào khớp bộ lọc.</p>
           ) : (
-            <Table>
+            <Table maxHeight="max-h-[max(320px,calc(100dvh-23rem))]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Mức độ</TableHead>

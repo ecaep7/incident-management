@@ -110,7 +110,7 @@ export default function DeviceDetailPage() {
           {history.length === 0 ? (
             <p className="p-6 text-muted-foreground">Thiết bị này chưa có sự cố nào.</p>
           ) : (
-            <Table>
+            <Table maxHeight="max-h-[60vh]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Thời gian</TableHead>

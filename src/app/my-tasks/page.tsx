@@ -135,7 +135,7 @@ export default function MyTasksPage() {
               {activeTab === 'todo' && !kw ? 'Bạn đã xử lý hết việc được giao.' : 'Không có việc nào khớp.'}
             </p>
           ) : (
-            <Table>
+            <Table maxHeight="max-h-[max(320px,calc(100dvh-33rem))]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Ticket</TableHead>

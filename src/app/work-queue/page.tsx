@@ -108,7 +108,8 @@ function QueueCard({ title, empty, items, render }: {
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">{title} ({items.length})</CardTitle></CardHeader>
-      <CardContent className="flex flex-col gap-2">
+      {/* Danh sach dai: chieu cao co dinh, cuon ben trong */}
+      <CardContent className="scroll-thin flex max-h-[420px] flex-col gap-2 overflow-y-auto">
         {items.length === 0 ? <p className="text-sm text-muted-foreground">{empty}</p> : items.map(render)}
       </CardContent>
     </Card>
