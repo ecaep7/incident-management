@@ -82,9 +82,9 @@ export default function IncidentsPage() {
         <p className="text-sm text-muted-foreground">Tự động cập nhật mỗi 15 giây</p>
       </div>
 
-      <Card>
-        <CardContent className="flex flex-wrap items-end gap-4">
-          <div className="flex flex-col gap-2">
+      <Card size="sm">
+        <CardContent className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-col gap-1">
             <Label>Tìm kiếm</Label>
             <Input
               value={keyword}
@@ -94,7 +94,7 @@ export default function IncidentsPage() {
             />
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             <Label>Mức độ</Label>
             <Select value={severityFilter} onValueChange={(v) => setSeverityFilter(v ?? 'all')}>
               <SelectTrigger className="w-40">
@@ -110,7 +110,7 @@ export default function IncidentsPage() {
             </Select>
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             <Label>Trạng thái</Label>
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? 'all')}>
               <SelectTrigger className="w-44">
@@ -144,7 +144,7 @@ export default function IncidentsPage() {
           ) : filteredIncidents.length === 0 ? (
             <p className="p-6 text-muted-foreground">Không có cảnh báo nào khớp bộ lọc.</p>
           ) : (
-            <Table maxHeight="max-h-[max(320px,calc(100dvh-23rem))]">
+            <Table maxHeight="max-h-[max(320px,calc(100dvh-21rem))]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Mức độ</TableHead>

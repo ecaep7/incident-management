@@ -101,7 +101,7 @@ export default function MyTasksPage() {
         <StatCard label="Tỷ lệ đạt" value={passRate} color="green" hint={`${passed}/${done.length} việc đã duyệt`} onClick={() => setTab('done')} active={activeTab === 'done'} />
       </div>
 
-      <Card>
+      <Card size="sm">
         <CardContent className="flex flex-wrap items-center gap-3">
           <div className="flex flex-wrap gap-1 rounded-[15px] bg-[var(--surface-soft)] p-1">
             {TABS.map((t) => (
@@ -135,7 +135,7 @@ export default function MyTasksPage() {
               {activeTab === 'todo' && !kw ? 'Bạn đã xử lý hết việc được giao.' : 'Không có việc nào khớp.'}
             </p>
           ) : (
-            <Table maxHeight="max-h-[max(320px,calc(100dvh-33rem))]">
+            <Table maxHeight="max-h-[max(320px,calc(100dvh-31rem))]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Ticket</TableHead>

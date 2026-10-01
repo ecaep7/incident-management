@@ -77,7 +77,6 @@ export function buildTimeline(b: TicketBundle): TimelineEvent[] {
       events.push({
         at: t.submitted_at,
         title: `${name(t.handler_user_id)} nộp kết quả`,
-        detail: t.handler_description || undefined,
         tone: 'neutral',
       })
     }
