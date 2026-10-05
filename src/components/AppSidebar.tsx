@@ -34,7 +34,7 @@ export function AppSidebar({ profile }: { profile: any }) {
   ]
 
   return (
-    <Sidebar variant="floating">
+    <Sidebar>
       <SidebarHeader className="px-4 py-4">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-white/10 font-bold text-sidebar-foreground">
