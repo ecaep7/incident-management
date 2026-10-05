@@ -14,24 +14,40 @@
    text-micro   12px / 400  - ghi chu, thoi gian, goi y (mau nhat)
    So lieu KPI giu co rieng (lon). */
 @theme {
-  --text-h1: 28px;
+  --text-h1: 35px;
   --text-h1--line-height: 1.2;
   --text-h1--letter-spacing: -0.02em;
   --text-h1--font-weight: 600;
   --text-h2: 20px;
   --text-h2--line-height: 1.3;
   --text-h2--letter-spacing: -0.015em;
-  --text-h2--font-weight: 600;
+  --text-h2--font-weight: 400;
   --text-h3: 16px;
   --text-h3--line-height: 1.4;
   --text-h3--letter-spacing: -0.01em;
-  --text-h3--font-weight: 600;
+  --text-h3--font-weight: 200;
   --text-body: 14px;
-  --text-body--line-height: 1.55;
-  --text-caption: 13px;
+  --text-body--line-height: 1.5;
+  --text-body--font-weight: 200;
+  --text-caption: 14px;
   --text-caption--line-height: 1.5;
-  --text-micro: 12px;
+  --text-caption--font-weight: 200;
+  --text-micro: 14px;
   --text-micro--line-height: 1.5;
+  --text-micro--font-weight: 200;
+    /* Co chu mac dinh cua Tailwind - dung o hau het noi dung */
+  --text-xs: 12px;
+  --text-xs--line-height: 1.5;
+  --text-sm: 15px;
+  --text-sm--line-height: 1.1;
+  --text-sm--font-weight: 00;
+  --text-base: 16px;
+  --text-base--line-height: 1.5;
+
+  --font-weight-normal: 00;
+  --font-weight-medium: 00;
+  --font-weight-semibold: 00;
+  --font-weight-bold: 00;
 }
 
 @theme inline {
