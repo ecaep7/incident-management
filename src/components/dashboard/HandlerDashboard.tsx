@@ -290,7 +290,7 @@ function DeadlineTag({ ticket }: { ticket: HandlerTask['ticket'] }) {
   const { state, hours } = getSlaState(ticket || {})
   if (state === 'unknown') return <span className="text-sm text-muted-foreground">—</span>
   if (state === 'overdue') return <Tag tone="red" className="ring-0">Quá hạn {formatHours(hours)}</Tag>
-  return <Tag tone={state === 'due_soon' ? 'amber' : 'blue'}>Còn {formatHours(hours)}</Tag>
+  return <Tag tone="blue">Còn {formatHours(hours)}</Tag>
 }
 
 function Legend({ color, label }: { color: string; label: string }) {
