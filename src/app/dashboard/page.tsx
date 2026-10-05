@@ -136,16 +136,11 @@ export default function DashboardPage() {
           <h1 className="text-h1">
             {greeting()}, <span className="text-primary">{firstName}</span>
           </h1>
-          <p className="text-sm text-muted-foreground">
-            {role === 'Handler' ? (
-              handlerStats.todo.length === 0 ? 'Bạn đã xử lý hết việc được giao' : (
-                <>
-                  Bạn có <span className="font-semibold text-foreground">{handlerStats.todo.length} việc chưa nộp</span>
-                  {handlerStats.atRisk > 0 && <>, trong đó <span className="font-semibold text-red-700 dark:text-red-300">{handlerStats.atRisk} việc quá hạn / sắp hết hạn SLA</span></>}
-                </>
-              )
-            ) : role === 'Viewer' ? 'Báo cáo tình hình xử lý sự cố an toàn thông tin' : 'Tổng quan tình hình sự cố an toàn thông tin'}
-          </p>
+          {role !== 'Handler' && (
+            <p className="text-sm text-muted-foreground">
+              {role === 'Viewer' ? 'Báo cáo tình hình xử lý sự cố an toàn thông tin' : 'Tổng quan tình hình sự cố an toàn thông tin'}
+            </p>
+          )}
         </div>
         {role === 'Admin' && (
           <div className="flex gap-2">

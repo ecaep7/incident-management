@@ -9,8 +9,8 @@ import {
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
 import { ClipboardList, Hourglass, CircleCheck, Timer, ArrowRight, PartyPopper, MessageSquareText } from 'lucide-react'
 import { StatusDot } from '@/components/StatusDot'
-import { SeverityTag, TaskResultTag } from '@/components/Tag'
-import { SlaBadge, getSlaState } from '@/components/SlaBadge'
+import { Tag, TaskResultTag } from '@/components/Tag'
+import { getSlaState, formatHours } from '@/components/SlaBadge'
 import { KpiCard } from '@/components/dashboard/OpsDashboard'
 
 // Dashboard cua Handler: chi DOC cac task cua chinh minh (RLS), moi so lieu tinh o giao dien.
@@ -188,10 +188,7 @@ export function HandlerDashboard({ tasks }: { tasks: HandlerTask[] }) {
                         </div>
                         <p className="truncate text-sm text-foreground/80">{t.ticket?.incident_alert?.alert_summary || '—'}</p>
                       </div>
-                      <div className="hidden w-24 shrink-0 text-sm sm:block">
-                        <SeverityTag level={t.ticket?.incident_alert?.severity_level} />
-                      </div>
-                      <div className="shrink-0"><SlaBadge ticket={t.ticket} /></div>
+<div className="shrink-0"><DeadlineTag ticket={t.ticket} /></div>
                     </Link>
                   </li>
                 ))}
@@ -286,6 +283,14 @@ export function HandlerDashboard({ tasks }: { tasks: HandlerTask[] }) {
       </div>
     </div>
   )
+}
+
+// Han SLA gon: chi "Con X gio" hoac "Qua han X gio" (do nhat, khong vien)
+function DeadlineTag({ ticket }: { ticket: HandlerTask['ticket'] }) {
+  const { state, hours } = getSlaState(ticket || {})
+  if (state === 'unknown') return <span className="text-sm text-muted-foreground">—</span>
+  if (state === 'overdue') return <Tag tone="red" className="ring-0">Quá hạn {formatHours(hours)}</Tag>
+  return <Tag tone={state === 'due_soon' ? 'amber' : 'blue'}>Còn {formatHours(hours)}</Tag>
 }
 
 function Legend({ color, label }: { color: string; label: string }) {
