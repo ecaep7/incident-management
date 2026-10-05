@@ -4,6 +4,36 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ===== THANG CHU (typescale) dung chung toan he thong =====
+   Font: Plus Jakarta Sans. Khoang cach theo boi so 4px.
+   text-h1      28px / 600  - tieu de trang
+   text-h2      20px / 600  - tieu de popup, tieu de lon trong trang
+   text-h3      16px / 600  - tieu de khoi (card)
+   text-body    14px / 400  - noi dung chinh
+   text-caption 13px / 400  - nhan, thong tin phu (mau nhat)
+   text-micro   12px / 400  - ghi chu, thoi gian, goi y (mau nhat)
+   So lieu KPI giu co rieng (lon). */
+@theme {
+  --text-h1: 28px;
+  --text-h1--line-height: 1.2;
+  --text-h1--letter-spacing: -0.02em;
+  --text-h1--font-weight: 600;
+  --text-h2: 20px;
+  --text-h2--line-height: 1.3;
+  --text-h2--letter-spacing: -0.015em;
+  --text-h2--font-weight: 600;
+  --text-h3: 16px;
+  --text-h3--line-height: 1.4;
+  --text-h3--letter-spacing: -0.01em;
+  --text-h3--font-weight: 600;
+  --text-body: 14px;
+  --text-body--line-height: 1.55;
+  --text-caption: 13px;
+  --text-caption--line-height: 1.5;
+  --text-micro: 12px;
+  --text-micro--line-height: 1.5;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -49,7 +79,8 @@
 }
 
 :root {
-  --background: #FFFFFF;
+  /* Nen xam nhe de cac khoi trang noi bat */
+  --background: #F2F4F7;
   --foreground: #0B1A2B;
   --card: #FFFFFF;
   --card-foreground: #0B1A2B;
@@ -172,6 +203,10 @@
   /* Khoang cach giua tieu de trang va dong mo ta ben duoi */
   h1 + p {
     margin-top: 0.5rem;
+  }
+  /* Chu nho (12-14px) gian dong thoang hon, khong dinh vao nhau */
+  .text-sm, .text-xs, .text-body, .text-caption, .text-micro {
+    line-height: 1.5;
   }
 }
 /* Thanh cuon mong, tong xanh-xam, dung cho cac danh sach dai */

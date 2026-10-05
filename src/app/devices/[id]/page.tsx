@@ -71,7 +71,7 @@ export default function DeviceDetailPage() {
           <p className="text-sm text-muted-foreground">
             <Link href="/devices" className="hover:underline">Thiết bị</Link> / {device.device_code}
           </p>
-          <h1 className="text-[30px] leading-[1.1] font-semibold tracking-[-0.03em]">{device.device_name || device.device_code}</h1>
+          <h1 className="text-h1">{device.device_name || device.device_code}</h1>
           <p className="mt-1 text-muted-foreground">
             {device.devicetype_name} · {device.management_ip}{device.location ? ` · ${device.location}` : ''}
           </p>
@@ -103,7 +103,7 @@ export default function DeviceDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Lịch sử sự cố ({history.length})</CardTitle>
+          <CardTitle>Lịch sử sự cố ({history.length})</CardTitle>
           {!isAdmin && <p className="text-sm text-muted-foreground">Chỉ hiển thị các sự cố đã được xác minh và tạo ticket.</p>}
         </CardHeader>
         <CardContent className="p-0">

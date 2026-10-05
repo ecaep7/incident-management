@@ -39,7 +39,7 @@ export default function LoginPage() {
           <div className="mb-2 flex h-10 w-15 items-center justify-center rounded-md bg-primary font-bold text-primary-foreground">
             ATTT
           </div>
-          <CardTitle className="text-xl">Đăng nhập</CardTitle>
+          <CardTitle className="text-h2">Đăng nhập</CardTitle>
           <CardDescription>Hệ thống Quản lý Sự cố ATTT</CardDescription>
         </CardHeader>
         <CardContent>

@@ -97,8 +97,8 @@ export default function MyTaskDetailPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-sm text-muted-foreground">Việc của tôi / Task #{task.task_id}</p>
-          <h1 className="text-[30px] leading-[1.1] font-semibold tracking-[-0.03em]">{ticket.ticket_code}</h1>
-          <p className="mt-1 text-muted-foreground">{alert.alert_summary}</p>
+          <h1 className="text-h1">{ticket.ticket_code}</h1>
+          <p className="text-sm text-muted-foreground">{alert.alert_summary}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <SeverityTag level={alert.severity_level} />
@@ -131,7 +131,7 @@ export default function MyTaskDetailPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-2">
-          <CardHeader><CardTitle className="text-base">Thông tin sự cố</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Thông tin sự cố</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-3 text-sm">
             <Info label="Thiết bị" value={device.device_name ? `${device.device_name} (${device.device_code})` : undefined} />
             <Info label="Địa chỉ IP" value={alert.device_ip} />
@@ -148,11 +148,11 @@ export default function MyTaskDetailPage() {
         </Card>
 
         <Card className="lg:col-span-3">
-          <CardHeader><CardTitle className="text-base">{alreadySubmitted ? 'Kết quả đã nộp' : 'Nộp kết quả xử lý'}</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{alreadySubmitted ? 'Kết quả đã nộp' : 'Nộp kết quả xử lý'}</CardTitle></CardHeader>
           <CardContent>
             {alreadySubmitted ? (
               <div className="flex flex-col gap-3 text-sm">
-                <p className="text-muted-foreground">Đã nộp lúc: {fmt(task.submitted_at)}</p>
+                <p className="text-sm text-muted-foreground">Đã nộp lúc: {fmt(task.submitted_at)}</p>
                 <p className="whitespace-pre-wrap rounded-md bg-muted p-3">{task.handler_description}</p>
               </div>
             ) : (

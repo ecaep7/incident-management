@@ -108,7 +108,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
     <div className="flex flex-col gap-4">
       {/* Hang KPI */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <div className="flex flex-col justify-center gap-3 rounded-[24px] bg-[#0B3D73] p-5 text-white dark:bg-[#123A6B]">
+        <div className="flex flex-col justify-center gap-3 rounded-[12px] bg-[#0B3D73] p-5 text-white dark:bg-[#123A6B]">
           {role === 'Admin'
             ? <SummaryRow icon={<Inbox className="h-4 w-4" />} label="Chờ phân loại" value={String(pendingAlerts ?? '—')} />
             : <SummaryRow icon={<Inbox className="h-4 w-4" />} label="Đang mở" value={String(k.open)} />}
@@ -147,7 +147,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
         <Card className="xl:col-span-6">
           <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
             <div className="flex flex-col gap-1">
-              <CardTitle className="text-base">Xu hướng sự cố</CardTitle>
+              <CardTitle>Xu hướng sự cố</CardTitle>
               <div className="flex gap-4 text-xs text-muted-foreground">
                 <LegendDot color="var(--series-1)" label="Tạo mới" />
                 <LegendDot color="var(--series-2)" label="Đã đóng" />
@@ -174,7 +174,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
 
         <Card className="xl:col-span-3">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Trạng thái ticket</CardTitle>
+            <CardTitle>Trạng thái ticket</CardTitle>
             <Link href="/tickets" className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--surface-soft)] hover:bg-muted" aria-label="Xem danh sách ticket">
               <ArrowUpRight className="h-4 w-4" />
             </Link>
@@ -245,7 +245,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
       {/* Phan tich chi tiet */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card>
-          <CardHeader><CardTitle className="text-base">Ticket theo mức độ</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Ticket theo mức độ</CardTitle></CardHeader>
           <CardContent>
             <ChartContainer config={countConfig} className="h-[180px] w-full">
               <BarChart data={stats.byPriority} layout="vertical" margin={{ left: 0 }}>
@@ -262,7 +262,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-base">Ticket theo phòng ban</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Ticket theo phòng ban</CardTitle></CardHeader>
           <CardContent>
             <ChartContainer config={countConfig} className="h-[180px] w-full">
               <BarChart data={stats.byDept} layout="vertical" margin={{ left: 0 }}>
@@ -279,7 +279,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-base">Hiệu suất theo phòng ban</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Hiệu suất theo phòng ban</CardTitle></CardHeader>
           <CardContent className="p-0">
             <Table maxHeight="max-h-[300px]">
               <TableHeader>
@@ -312,7 +312,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
       <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-12">
         <Card className="xl:col-span-9">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Ticket đang mở ({active.length})</CardTitle>
+            <CardTitle>Ticket đang mở ({active.length})</CardTitle>
             <Segmented value={sortBy} onChange={(v) => setSortBy(v as 'newest' | 'deadline')}
               options={[['newest', 'Mới nhất'], ['deadline', 'Sắp hết hạn']]} />
           </CardHeader>
@@ -325,7 +325,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
                   const handler = handlerByTicket.get(t.ticket_id)
                   return (
                     <Link key={t.ticket_id} href={`/tickets/${t.ticket_id}`}
-                      className="flex flex-col gap-3 rounded-2xl border bg-[var(--surface-soft)] p-4 transition-colors hover:border-primary/40">
+                      className="flex flex-col gap-3 rounded-[8px] border bg-[var(--surface-soft)] p-4 transition-colors hover:border-primary/40">
                       <div className="flex items-start justify-between gap-2">
                         <TicketStatusTag status={t.status} />
                         <div className="text-right">
@@ -356,10 +356,10 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
           </CardContent>
         </Card>
 
-        <div className="flex flex-col gap-3 rounded-[24px] bg-[var(--block-blue)] p-5 xl:col-span-3">
+        <div className="flex flex-col gap-3 rounded-[12px] bg-[var(--block-blue)] p-5 xl:col-span-3">
           <div>
             <p className="text-sm text-foreground/70">Lối tắt</p>
-            <p className="text-lg font-semibold tracking-[-0.01em]">Bạn muốn làm gì tiếp?</p>
+            <p className="text-h3">Bạn muốn làm gì tiếp?</p>
           </div>
           <div className="grid grid-cols-2 gap-2">
             {role === 'Admin' && <Shortcut href="/work-queue" icon={<Inbox className="h-4 w-4" />} label="Việc cần xử lý" />}
@@ -367,7 +367,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
             <Shortcut href="/tickets" icon={<Ticket className="h-4 w-4" />} label="Ticket · Xuất Excel" />
             <Shortcut href="/devices" icon={<Server className="h-4 w-4" />} label="Thiết bị" />
           </div>
-          <div className="mt-auto flex items-center gap-2 rounded-full bg-background/70 px-4 py-2.5 text-sm text-muted-foreground">
+          <div className="mt-auto flex items-center gap-2 rounded-full bg-card/70 px-4 py-2.5 text-sm text-muted-foreground">
             <Bot className="h-4 w-4" /> Trợ lý AI sẽ có ở đây
           </div>
         </div>
@@ -460,7 +460,7 @@ function Avatar({ name }: { name?: string }) {
 
 function Shortcut({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
   return (
-    <Link href={href} className="flex flex-col gap-2 rounded-2xl bg-background/70 p-3 text-sm font-medium transition-colors hover:bg-background">
+    <Link href={href} className="flex flex-col gap-2 rounded-[8px] bg-card/70 p-3 text-sm font-medium transition-colors hover:bg-card">
       <span className="text-primary">{icon}</span>
       {label}
     </Link>

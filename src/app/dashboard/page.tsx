@@ -106,16 +106,16 @@ export default function DashboardPage() {
   const filterControls = (
     <>
       <Select value={preset} onValueChange={(v) => applyPreset(v ?? 'all')}>
-        <SelectTrigger className="w-44 rounded-[15px]"><SelectValue>{PRESET_LABEL[preset]}</SelectValue></SelectTrigger>
+        <SelectTrigger className="w-44"><SelectValue>{PRESET_LABEL[preset]}</SelectValue></SelectTrigger>
         <SelectContent>
           {Object.entries(PRESET_LABEL).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
         </SelectContent>
       </Select>
-      <Input type="date" aria-label="Từ ngày" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPreset('custom') }} className="w-40 rounded-[15px]" />
+      <Input type="date" aria-label="Từ ngày" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPreset('custom') }} className="w-40" />
       <span className="text-muted-foreground">→</span>
-      <Input type="date" aria-label="Đến ngày" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPreset('custom') }} className="w-40 rounded-[15px]" />
+      <Input type="date" aria-label="Đến ngày" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPreset('custom') }} className="w-40" />
       <Select value={depFilter} onValueChange={(v) => setDepFilter(v ?? 'all')}>
-        <SelectTrigger className="w-64 rounded-[15px]"><SelectValue>{selectedDepName}</SelectValue></SelectTrigger>
+        <SelectTrigger className="w-64"><SelectValue>{selectedDepName}</SelectValue></SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Tất cả phòng ban</SelectItem>
           {departments.map((d) => <SelectItem key={d.dep_id} value={String(d.dep_id)}>{d.dep_name}</SelectItem>)}
@@ -134,16 +134,16 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-[40px] leading-[1.1] font-semibold tracking-[-0.03em]">
+          <h1 className="text-h1">
             {greeting()}, <span className="text-primary">{firstName}</span>
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             {role === 'Handler' ? 'Tổng quan hiệu suất xử lý của bạn' : role === 'Viewer' ? 'Báo cáo tình hình xử lý sự cố an toàn thông tin' : 'Tổng quan tình hình sự cố an toàn thông tin'}
           </p>
         </div>
         {role === 'Admin' && (
           <div className="flex gap-2">
-            <Link href="/incidents" className="inline-flex h-10 items-center gap-2 rounded-[17px] border bg-background px-4 text-sm font-medium hover:bg-muted">
+            <Link href="/incidents" className="inline-flex h-10 items-center gap-2 rounded-[17px] border bg-card px-4 text-sm font-medium hover:bg-muted">
               <AlertTriangle className="h-4 w-4" />Hàng chờ cảnh báo
             </Link>
             <Link href="/work-queue" className="inline-flex h-10 items-center gap-2 rounded-[17px] bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85">
@@ -184,7 +184,7 @@ export default function DashboardPage() {
 {role === 'Handler' && myPerf && (
   <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
     <Card className="lg:col-span-2">
-      <CardHeader><CardTitle className="text-base">Hiệu suất của bạn</CardTitle></CardHeader>
+      <CardHeader><CardTitle>Hiệu suất của bạn</CardTitle></CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div>
@@ -211,7 +211,7 @@ export default function DashboardPage() {
     </Card>
 
     <Card>
-      <CardHeader><CardTitle className="text-base">Phân bổ kết quả</CardTitle></CardHeader>
+      <CardHeader><CardTitle>Phân bổ kết quả</CardTitle></CardHeader>
       <CardContent className="flex items-center gap-4">
         <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-35 flex-1">
           <PieChart>
