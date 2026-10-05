@@ -10,11 +10,10 @@ import {
 } from '@/components/ui/chart'
 import { PieChart, Pie, Cell } from 'recharts'
 import { StatusDot } from '@/components/StatusDot'
-import { Input } from '@/components/ui/input'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import { Inbox, AlertTriangle, Ticket, RotateCcw } from 'lucide-react'
+import { Inbox, AlertTriangle, Ticket, RotateCcw, CalendarDays } from 'lucide-react'
 import { OpsDashboard, type OpsTicket } from '@/components/dashboard/OpsDashboard'
 import { ReportDashboard } from '@/components/dashboard/ReportDashboard'
 
@@ -41,6 +40,7 @@ export default function DashboardPage() {
   const [devices, setDevices] = useState<{ total: number; withOpen: number } | null>(null)
   const [pendingAlerts, setPendingAlerts] = useState<number | null>(null)
   const [myPerf, setMyPerf] = useState<any>(null)
+  const [loadedAt, setLoadedAt] = useState<Date | null>(null)
 
   // Bo loc (chi ap dung cho Admin / Viewer)
   const [preset, setPreset] = useState('all')
@@ -81,7 +81,7 @@ export default function DashboardPage() {
         setMyPerf(mp)
       }
     }
-    load()
+    load().then(() => setLoadedAt(new Date()))
   }, [role])
 
   const filter = useMemo(() => ({ from: dateFrom, to: dateTo, depId: depFilter }), [dateFrom, dateTo, depFilter])
@@ -105,15 +105,22 @@ export default function DashboardPage() {
   // Bo loc dung chung (thoi gian + phong ban). Viewer: dat cung hang voi nut Xuat bao cao
   const filterControls = (
     <>
-      <Select value={preset} onValueChange={(v) => applyPreset(v ?? 'all')}>
-        <SelectTrigger className="w-44"><SelectValue>{PRESET_LABEL[preset]}</SelectValue></SelectTrigger>
-        <SelectContent>
-          {Object.entries(PRESET_LABEL).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
-        </SelectContent>
-      </Select>
-      <Input type="date" aria-label="Từ ngày" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPreset('custom') }} className="w-40" />
-      <span className="text-muted-foreground">→</span>
-      <Input type="date" aria-label="Đến ngày" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPreset('custom') }} className="w-40" />
+      <div className="flex min-w-0 items-center">
+        <div className="flex h-9 min-w-0 items-center gap-2 rounded-l-md border border-r-0 border-input bg-card pl-3 pr-1 text-sm text-muted-foreground">
+          <CalendarDays className="size-4 shrink-0" />
+          <input type="date" aria-label="Từ ngày" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPreset('custom') }}
+            className="w-[8.5rem] bg-transparent text-foreground outline-none" />
+          <span>→</span>
+          <input type="date" aria-label="Đến ngày" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPreset('custom') }}
+            className="w-[8.5rem] bg-transparent text-foreground outline-none" />
+        </div>
+        <Select value={preset} onValueChange={(v) => applyPreset(v ?? 'all')}>
+          <SelectTrigger className="w-40 rounded-l-none"><SelectValue>{PRESET_LABEL[preset]}</SelectValue></SelectTrigger>
+          <SelectContent>
+            {Object.entries(PRESET_LABEL).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
       <Select value={depFilter} onValueChange={(v) => setDepFilter(v ?? 'all')}>
         <SelectTrigger className="w-64"><SelectValue>{selectedDepName}</SelectValue></SelectTrigger>
         <SelectContent>
@@ -130,42 +137,59 @@ export default function DashboardPage() {
     </>
   )
 
+  // Thanh dau trang kieu Capitalio: tieu de + dong cap nhat | hanh dong; hang duoi la bo loc
+  const meta = (
+    <span className="flex flex-wrap items-center gap-2 text-caption text-muted-foreground">
+      <span>Cập nhật lúc <span className="font-medium text-foreground">{loadedAt ? loadedAt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '—'}</span></span>
+      <span className="size-1.5 rounded-full bg-muted-foreground/50" />
+      <span>Phạm vi <span className="font-medium text-foreground">{selectedDepName}</span></span>
+      <span className="size-1.5 rounded-full bg-muted-foreground/50" />
+      <span>{PRESET_LABEL[preset]}</span>
+    </span>
+  )
+  const topbar = (actions: React.ReactNode) => (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <h1 className="text-h1">{greeting()}, <span className="text-primary">{firstName}</span></h1>
+          {meta}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">{actions}</div>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">{filterControls}</div>
+    </div>
+  )
+
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      {role === 'Handler' && (
         <div>
-          <h1 className="text-h1">
-            {greeting()}, <span className="text-primary">{firstName}</span>
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {role === 'Handler' ? 'Tổng quan hiệu suất xử lý của bạn' : role === 'Viewer' ? 'Báo cáo tình hình xử lý sự cố an toàn thông tin' : 'Tổng quan tình hình sự cố an toàn thông tin'}
-          </p>
+          <h1 className="text-h1">{greeting()}, <span className="text-primary">{firstName}</span></h1>
+          <p className="text-sm text-muted-foreground">Tổng quan hiệu suất xử lý của bạn</p>
         </div>
-        {role === 'Admin' && (
-          <div className="flex gap-2">
+      )}
+
+      {(role === 'Admin' || role === 'Viewer') && (
+        <>
+          {role === 'Viewer' ? (
+            // Viewer (lanh dao / giam sat): dashboard dang bao cao
+            <ReportDashboard tickets={tickets} categories={categories} departments={departments} filter={filter}
+              topbar={(exportAction) => topbar(<>
+                <Link href="/tickets" className="inline-flex h-10 items-center gap-2 rounded-[17px] border bg-card px-4 text-sm font-medium hover:bg-muted">
+                  <Ticket className="h-4 w-4" />Danh sách ticket
+                </Link>
+                {exportAction}
+              </>)} />
+          ) : (
+          <>
+          {topbar(<>
             <Link href="/incidents" className="inline-flex h-10 items-center gap-2 rounded-[17px] border bg-card px-4 text-sm font-medium hover:bg-muted">
               <AlertTriangle className="h-4 w-4" />Hàng chờ cảnh báo
             </Link>
             <Link href="/work-queue" className="inline-flex h-10 items-center gap-2 rounded-[17px] bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85">
               <Inbox className="h-4 w-4" />Việc cần xử lý
             </Link>
-          </div>
-        )}
-        {role === 'Viewer' && (
-          <Link href="/tickets" className="inline-flex h-10 items-center gap-2 rounded-[17px] bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85">
-            <Ticket className="h-4 w-4" />Danh sách ticket
-          </Link>
-        )}
-      </div>
-
-      {(role === 'Admin' || role === 'Viewer') && (
-        <>
-          {role === 'Viewer' ? (
-            // Viewer (lanh dao / giam sat): dashboard dang bao cao
-            <ReportDashboard tickets={tickets} categories={categories} departments={departments} filter={filter} filterControls={filterControls} />
-          ) : (
-          <>
-          <div className="flex flex-wrap items-center gap-2">{filterControls}</div>
+          </>)}
           <OpsDashboard
             role={role}
             tickets={tickets}
