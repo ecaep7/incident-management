@@ -4,21 +4,14 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useProfile } from '@/lib/useProfile'
 import { supabase } from '@/lib/supabase'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent,
-} from '@/components/ui/chart'
-import { PieChart, Pie, Cell } from 'recharts'
-import { StatusDot } from '@/components/StatusDot'
 import { Input } from '@/components/ui/input'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import { Inbox, AlertTriangle, Ticket, RotateCcw } from 'lucide-react'
+import { Inbox, AlertTriangle, Ticket, RotateCcw, ClipboardList } from 'lucide-react'
 import { OpsDashboard, type OpsTicket } from '@/components/dashboard/OpsDashboard'
 import { ReportDashboard } from '@/components/dashboard/ReportDashboard'
-
-const chartConfig = { total: { label: 'Số lượng' } } satisfies ChartConfig
+import { HandlerDashboard, useHandlerStats, type HandlerTask } from '@/components/dashboard/HandlerDashboard'
 
 function greeting() {
   const h = new Date().getHours()
@@ -40,7 +33,7 @@ export default function DashboardPage() {
   const [handlerByTicket, setHandlerByTicket] = useState<Map<number, string>>(new Map())
   const [devices, setDevices] = useState<{ total: number; withOpen: number } | null>(null)
   const [pendingAlerts, setPendingAlerts] = useState<number | null>(null)
-  const [myPerf, setMyPerf] = useState<any>(null)
+  const [myTasks, setMyTasks] = useState<HandlerTask[]>([])
 
   // Bo loc (chi ap dung cho Admin / Viewer)
   const [preset, setPreset] = useState('all')
@@ -77,8 +70,12 @@ export default function DashboardPage() {
         }
       }
       if (role === 'Handler') {
-        const { data: mp } = await supabase.from('my_task_performance').select('*').single()
-        setMyPerf(mp)
+        // RLS chi tra ve task cua chinh Handler dang nhap
+        const { data: mt } = await supabase
+          .from('ticket_task')
+          .select('task_id, ticket_id, direction, created_at, submitted_at, is_passed, admin_review_notes, reviewed_at, ticket(ticket_code, status, sla_deadline, closed_at, incident_alert(alert_summary, severity_level))')
+          .order('created_at', { ascending: false })
+        setMyTasks((mt as unknown as HandlerTask[]) || [])
       }
     }
     load()
@@ -99,6 +96,8 @@ export default function DashboardPage() {
   const PRESET_LABEL: Record<string, string> = { all: 'Toàn bộ thời gian', '7': '7 ngày qua', '30': '30 ngày qua', custom: 'Tùy chọn' }
   const selectedDepName = depFilter === 'all' ? 'Tất cả phòng ban' : departments.find((d) => String(d.dep_id) === depFilter)?.dep_name
   const firstName = (profile?.full_name || '').trim().split(/\s+/).slice(-2).join(' ')
+
+  const handlerStats = useHandlerStats(myTasks)
 
   if (loading) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
 
@@ -137,9 +136,11 @@ export default function DashboardPage() {
           <h1 className="text-h1">
             {greeting()}, <span className="text-primary">{firstName}</span>
           </h1>
-          <p className="text-sm text-muted-foreground">
-            {role === 'Handler' ? 'Tổng quan hiệu suất xử lý của bạn' : role === 'Viewer' ? 'Báo cáo tình hình xử lý sự cố an toàn thông tin' : 'Tổng quan tình hình sự cố an toàn thông tin'}
-          </p>
+          {role !== 'Handler' && (
+            <p className="text-sm text-muted-foreground">
+              {role === 'Viewer' ? 'Báo cáo tình hình xử lý sự cố an toàn thông tin' : 'Tổng quan tình hình sự cố an toàn thông tin'}
+            </p>
+          )}
         </div>
         {role === 'Admin' && (
           <div className="flex gap-2">
@@ -150,6 +151,11 @@ export default function DashboardPage() {
               <Inbox className="h-4 w-4" />Việc cần xử lý
             </Link>
           </div>
+        )}
+        {role === 'Handler' && (
+          <Link href="/my-tasks" className="inline-flex h-10 items-center gap-2 rounded-[17px] bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85">
+            <ClipboardList className="h-4 w-4" />Việc của tôi{handlerStats.todo.length ? ` (${handlerStats.todo.length})` : ''}
+          </Link>
         )}
         {role === 'Viewer' && (
           <Link href="/tickets" className="inline-flex h-10 items-center gap-2 rounded-[17px] bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85">
@@ -181,64 +187,7 @@ export default function DashboardPage() {
         </>
       )}
 
-{role === 'Handler' && myPerf && (
-  <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-    <Card className="lg:col-span-2">
-      <CardHeader><CardTitle>Hiệu suất của bạn</CardTitle></CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div>
-            <div className="text-3xl font-[520] tracking-[-0.02em]">{myPerf.total_tasks}</div>
-            <p className="text-sm text-muted-foreground">Tổng số task</p>
-          </div>
-          <div>
-            <div className="text-3xl font-[520] tracking-[-0.02em] text-green-600">{myPerf.passed}</div>
-            <p className="text-sm text-muted-foreground">Đạt</p>
-          </div>
-          <div>
-            <div className="text-3xl font-[520] tracking-[-0.02em] text-destructive">{myPerf.failed}</div>
-            <p className="text-sm text-muted-foreground">Không đạt</p>
-          </div>
-          <div>
-            <div className="text-3xl font-[520] tracking-[-0.02em]">
-              {myPerf.avg_hours_to_submit ? myPerf.avg_hours_to_submit.toFixed(1) : '—'}
-              {myPerf.avg_hours_to_submit ? <span className="text-base font-normal text-muted-foreground"> giờ</span> : null}
-            </div>
-            <p className="text-sm text-muted-foreground">TG xử lý TB</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-
-    <Card>
-      <CardHeader><CardTitle>Phân bổ kết quả</CardTitle></CardHeader>
-      <CardContent className="flex items-center gap-4">
-        <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-35 flex-1">
-          <PieChart>
-            <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-            <Pie
-              data={[
-                { name: 'Đạt', total: myPerf.passed },
-                { name: 'Không đạt', total: myPerf.failed },
-                { name: 'Chưa nộp', total: myPerf.pending },
-              ]}
-              dataKey="total" nameKey="name" innerRadius={35} strokeWidth={3}
-            >
-              <Cell fill="#16A34A" />
-              <Cell fill="#DC2626" />
-              <Cell fill="#94A3B8" />
-            </Pie>
-          </PieChart>
-        </ChartContainer>
-        <div className="flex flex-col gap-2">
-          <StatusDot label={`Đạt — ${myPerf.passed}`} color="#16A34A" />
-          <StatusDot label={`Không đạt — ${myPerf.failed}`} color="#DC2626" />
-          <StatusDot label={`Chưa nộp — ${myPerf.pending}`} color="#94A3B8" />
-        </div>
-      </CardContent>
-    </Card>
-  </div>
-)}
+{role === 'Handler' && <HandlerDashboard tasks={myTasks} />}
     </div>
   )
 }
