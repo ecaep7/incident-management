@@ -156,7 +156,7 @@ export function ReportDashboard({ tickets, categories, departments, filter, filt
       </div>
 
       {/* Chi tieu chinh */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Tổng số ticket" icon={<Ticket className="h-4 w-4" />} value={String(k.total)}
           delta={pctChange(k.total, pk?.total ?? null)} goodWhen="down" progress={1}
           hint={`${k.open} đang mở · ${k.overdueOpen} quá hạn`} />
@@ -174,7 +174,7 @@ export function ReportDashboard({ tickets, categories, departments, filter, filt
       {!prevRange && <p className="-mt-2 text-xs text-muted-foreground">Chọn khoảng thời gian ở bộ lọc để so sánh với kỳ trước.</p>}
 
       {/* Dien bien theo thang */}
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Số ticket theo tháng</CardTitle>

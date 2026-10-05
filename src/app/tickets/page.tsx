@@ -82,9 +82,14 @@ export default function TicketsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-h1">Danh sách Ticket</h1>
-        <p className="text-sm text-muted-foreground">Tự động cập nhật mỗi 15 giây</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-h1">Danh sách Ticket</h1>
+          <p className="text-sm text-muted-foreground">Tự động cập nhật mỗi 15 giây</p>
+        </div>
+        <Button variant="outline" onClick={exportExcel} disabled={filteredTickets.length === 0}>
+          <Download className="mr-2 h-4 w-4" />Xuất Excel ({filteredTickets.length})
+        </Button>
       </div>
 
       <Card size="sm">
@@ -134,9 +139,6 @@ export default function TicketsPage() {
           </div>
 
           <Button onClick={clearFilters}>Xóa bộ lọc</Button>
-          <Button variant="outline" onClick={exportExcel} disabled={filteredTickets.length === 0} className="ml-auto">
-            <Download className="mr-2 h-4 w-4" />Xuất Excel ({filteredTickets.length})
-          </Button>
         </CardContent>
       </Card>
 

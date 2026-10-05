@@ -86,7 +86,7 @@ export default function MyTasksPage() {
   })
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       <div>
         <h1 className="text-h1">Việc của tôi</h1>
         <p className="text-sm text-muted-foreground">
@@ -94,7 +94,7 @@ export default function MyTasksPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         <StatCard label="Cần xử lý" value={todo.length} color="blue" onClick={() => setTab('todo')} active={activeTab === 'todo'} />
         <StatCard label="Quá hạn / sắp hết hạn SLA" value={atRisk.length} color="red" hint="Trong số việc chưa nộp" onClick={() => setTab('todo')} />
         <StatCard label="Chờ Admin duyệt" value={review.length} color="amber" onClick={() => setTab('review')} active={activeTab === 'review'} />
@@ -102,7 +102,7 @@ export default function MyTasksPage() {
       </div>
 
       <Card size="sm">
-        <CardContent className="flex flex-wrap items-center gap-3">
+        <CardContent className="flex flex-wrap items-center gap-2">
           <div className="flex flex-wrap gap-1 rounded-[15px] bg-[var(--surface-soft)] p-1">
             {TABS.map((t) => (
               <Button

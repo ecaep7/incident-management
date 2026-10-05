@@ -61,13 +61,13 @@ export default function WorkQueuePage() {
   ] as const
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       <div>
         <h1 className="text-h1">Việc cần xử lý</h1>
         <p className="text-sm text-muted-foreground">Tổng hợp những việc đang chờ Admin · tự động cập nhật mỗi 15 giây</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         {summary.map((s) => <StatCard key={s.label} label={s.label} value={s.value} color={s.color} />)}
       </div>
 
@@ -76,7 +76,7 @@ export default function WorkQueuePage() {
         empty="Không có cảnh báo mới."
         items={newAlerts}
         render={(a) => (
-          <Link key={a.incident_id} href={`/incidents/${a.incident_id}`} className="flex items-center gap-3 rounded-md border p-3 text-sm hover:bg-muted">
+          <Link key={a.incident_id} href={`/incidents/${a.incident_id}`} className="flex items-center gap-2 rounded-md border p-3 text-sm hover:bg-muted">
             <SeverityTag level={a.severity_level} />
             <span className="flex-1 font-medium">{a.alert_summary}</span>
             {a.current_status === 'Verifying' && <Tag tone="amber">Đang xác minh</Tag>}

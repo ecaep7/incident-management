@@ -107,7 +107,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
   return (
     <div className="flex flex-col gap-4">
       {/* Hang KPI */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-5">
         <div className="flex flex-col justify-center gap-3 rounded-[12px] bg-[#0B3D73] p-5 text-white dark:bg-[#123A6B]">
           {role === 'Admin'
             ? <SummaryRow icon={<Inbox className="h-4 w-4" />} label="Chờ phân loại" value={String(pendingAlerts ?? '—')} />
@@ -143,7 +143,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
       )}
 
       {/* Xu huong + ty le trang thai + tinh trang giam sat */}
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+      <div className="grid grid-cols-1 gap-2 xl:grid-cols-12">
         <Card className="xl:col-span-6">
           <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
             <div className="flex flex-col gap-1">
@@ -223,7 +223,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
             </div>
             <div>
               <p className="text-base font-semibold">Tình trạng giám sát</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {devices ? `Đang giám sát ${devices.total} thiết bị` : 'Đang tải...'}
               </p>
             </div>
@@ -243,7 +243,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
       </div>
 
       {/* Phan tich chi tiet */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
         <Card>
           <CardHeader><CardTitle>Ticket theo mức độ</CardTitle></CardHeader>
           <CardContent>
@@ -309,7 +309,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
       </div>
 
       {/* Ticket dang mo + loi tat */}
-      <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-12">
+      <div className="grid grid-cols-1 items-start gap-2 xl:grid-cols-12">
         <Card className="xl:col-span-9">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Ticket đang mở ({active.length})</CardTitle>
@@ -395,7 +395,7 @@ export function KpiCard({ label, icon, value, delta, goodWhen, progress, hint, d
     <Card>
       <CardContent className="flex h-full flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
-          <span className="text-[13px] font-medium text-muted-foreground">{label}</span>
+          <span className="text-[15px] font-medium text-muted-foreground">{label}</span>
           <span className="text-muted-foreground">{icon}</span>
         </div>
         <div className="flex items-end gap-2">
@@ -443,7 +443,7 @@ function LegendDot({ color, label }: { color: string; label: string }) {
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="whitespace-nowrap text-muted-foreground">{label}</span>
+      <span className="whitespace-nowrap text-[15px] text-muted-foreground">{label}</span>
       {value}
     </div>
   )
