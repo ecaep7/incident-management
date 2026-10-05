@@ -1,20 +1,17 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
   ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent,
 } from '@/components/ui/chart'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, Cell as CellFill } from 'recharts'
-import { Ticket, CheckCircle2, ShieldCheck, Timer, Download } from 'lucide-react'
+import { Ticket, CheckCircle2, ShieldCheck, Timer, Download, Clock } from 'lucide-react'
 import { severityColor } from '@/components/StatusDot'
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table'
 import { computeKpis, filterTickets, pctChange, previousRange, trendSeries } from '@/lib/dashboardStats'
 import { downloadCsv } from '@/lib/exportCsv'
-import { KpiCard, type OpsTicket } from '@/components/dashboard/OpsDashboard'
+import { type OpsTicket } from '@/components/dashboard/OpsDashboard'
+import { DashCard, DashHeader, DashTag, DotGrid, GridTable, InsightItem, LegendRow, Marker, MetricRow, SummaryCard } from '@/components/dashboard/cap'
 
 // Dashboard "bao cao" danh cho Viewer (lanh dao / giam sat, chi xem).
 // Chi DOC du lieu ticket theo quyen cua Viewer, moi so lieu tinh o giao dien.
@@ -24,7 +21,8 @@ type Props = {
   categories: { category_id: number; category_name?: string; priority_level: string }[]
   departments: { dep_id: number; dep_name: string }[]
   filter: { from: string; to: string; depId: string }
-  filterControls?: React.ReactNode // bo loc tu trang cha, hien cung hang voi nut Xuat bao cao
+  // Trang cha dung thanh dau trang (tieu de + bo loc); nut Xuat bao cao duoc truyen vao phan hanh dong
+  topbar?: (exportAction: React.ReactNode) => React.ReactNode
 }
 
 const volumeConfig = {
@@ -45,7 +43,7 @@ function fmtHours(h: number | null) {
 }
 const fmtPct = (v: number | null) => (v === null ? '—' : `${v.toFixed(1).replace('.', ',')}%`)
 
-export function ReportDashboard({ tickets, categories, departments, filter, filterControls }: Props) {
+export function ReportDashboard({ tickets, categories, departments, filter, topbar }: Props) {
   const byDep = useMemo(() => filterTickets(tickets, { depId: filter.depId }), [tickets, filter.depId])
   const inPeriod = useMemo(() => filterTickets(byDep, { from: filter.from, to: filter.to }), [byDep, filter.from, filter.to])
   const prevRange = previousRange(filter.from || undefined, filter.to || undefined)
@@ -145,46 +143,69 @@ export function ReportDashboard({ tickets, categories, departments, filter, filt
     downloadCsv('bao_cao_tong_hop', ['BÁO CÁO TỔNG HỢP SỰ CỐ ATTT'], r)
   }
 
+  // Nhan dinh nhanh
+  const ratedDeps = deptRows.filter((d) => d.slaRate !== null)
+  const weakest = ratedDeps.length ? ratedDeps.reduce((a, b) => (b.slaRate! < a.slaRate! ? b : a)) : null
+  const topCat = catRows[0]
+  const rated = monthly.filter((m) => m.rate !== null)
+  const lastM = rated[rated.length - 1]
+  const prevM = rated[rated.length - 2]
+  const busiest = monthly.length ? monthly.reduce((a, b) => (b.created > a.created ? b : a)) : null
+
+  const deptCols = [
+    { label: 'Phòng ban', width: '2.8fr', render: (d: (typeof deptRows)[number]) => (
+      <span className="flex min-w-0 items-center gap-2"><Marker color={depColor.get(d.dep_id) || 'var(--muted-foreground)'} className="size-2.5" />
+        <span className="truncate font-medium" title={d.dep_name}>{d.dep_name}</span></span>) },
+    { label: 'Tổng', width: '0.7fr', align: 'right' as const, render: (d: (typeof deptRows)[number]) => d.total },
+    { label: 'Đang mở', width: '0.8fr', align: 'right' as const, render: (d: (typeof deptRows)[number]) => d.open },
+    { label: 'Đúng hạn SLA', width: '1.8fr', render: (d: (typeof deptRows)[number]) => (
+      <span className="flex w-full items-center gap-2">
+        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--surface-soft)]">
+          <span className="block h-full rounded-full bg-primary" style={{ width: `${Math.round(d.slaRate ?? 0)}%` }} />
+        </span>
+        <span className="w-14 text-right font-[650]">{fmtPct(d.slaRate)}</span>
+      </span>) },
+    { label: 'TG xử lý TB', width: '1fr', align: 'right' as const, render: (d: (typeof deptRows)[number]) => <span className="text-muted-foreground">{fmtHours(d.mttr)}</span> },
+    { label: 'Quá hạn', width: '0.8fr', align: 'right' as const, render: (d: (typeof deptRows)[number]) => (
+      <span className={d.overdueOpen > 0 ? 'font-[650] text-red-700 dark:text-red-300' : 'text-muted-foreground'}>{d.overdueOpen}</span>) },
+  ]
+
+  const exportAction = (
+    <Button onClick={exportReport} disabled={inPeriod.length === 0} className="h-10">
+      <Download className="mr-1 h-4 w-4" />Xuất báo cáo
+    </Button>
+  )
+
   return (
     <div className="flex flex-col gap-4">
-      {/* Bo loc + nut xuat bao cao cung mot hang */}
-      <div className="flex flex-wrap items-center gap-2">
-        {filterControls}
-        <Button onClick={exportReport} disabled={inPeriod.length === 0} className="ml-auto h-9">
-          <Download className="mr-1 h-4 w-4" />Xuất báo cáo
-        </Button>
-      </div>
+      {topbar?.(exportAction)}
 
-      {/* Chi tieu chinh */}
+      {/* The tong quan */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label="Tổng số ticket" icon={<Ticket className="h-4 w-4" />} value={String(k.total)}
+        <SummaryCard title="Tổng số ticket" icon={<Ticket />} value={String(k.total)}
           delta={pctChange(k.total, pk?.total ?? null)} goodWhen="down" progress={1}
           hint={`${k.open} đang mở · ${k.overdueOpen} quá hạn`} />
-        <KpiCard label="Đã đóng" icon={<CheckCircle2 className="h-4 w-4" />} value={String(k.closed)}
+        <SummaryCard title="Đã đóng" icon={<CheckCircle2 />} value={String(k.closed)}
           delta={pctChange(k.closed, pk?.closed ?? null)} goodWhen="up"
           progress={k.total ? k.closed / k.total : 0} hint={`${k.total ? Math.round((k.closed / k.total) * 100) : 0}% tổng số ticket`} />
-        <KpiCard label="Tỷ lệ đúng hạn SLA" icon={<ShieldCheck className="h-4 w-4" />} value={fmtPct(k.slaRate)}
+        <SummaryCard title="Tỷ lệ đúng hạn SLA" icon={<ShieldCheck />} value={fmtPct(k.slaRate)}
           delta={pctChange(k.slaRate, pk?.slaRate ?? null)} goodWhen="up"
           progress={(k.slaRate ?? 0) / 100} hint={`Trên ${k.closed} ticket đã đóng`} />
-        <KpiCard label="Thời gian xử lý TB" icon={<Timer className="h-4 w-4" />} value={fmtHours(k.mttrHours)}
+        <SummaryCard title="Thời gian xử lý TB" icon={<Timer />} value={fmtHours(k.mttrHours)}
           delta={pctChange(k.mttrHours, pk?.mttrHours ?? null)} goodWhen="down"
           progress={k.mttrHours && k.avgSlaHours ? k.mttrHours / k.avgSlaHours : 0}
           hint={k.avgSlaHours ? `Hạn SLA trung bình ${fmtHours(k.avgSlaHours)}` : undefined} />
       </div>
-      {!prevRange && <p className="-mt-2 text-xs text-muted-foreground">Chọn khoảng thời gian ở bộ lọc để so sánh với kỳ trước.</p>}
+      {!prevRange && <p className="-mt-1 text-micro text-muted-foreground">Chọn khoảng thời gian ở bộ lọc để so sánh với kỳ trước.</p>}
 
       {/* Dien bien theo thang */}
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Số ticket theo tháng</CardTitle>
-            <div className="flex gap-4 text-xs text-muted-foreground">
-              <Legend color="var(--series-1)" label="Tạo mới" />
-              <Legend color="var(--series-2)" label="Đã đóng" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={volumeConfig} className="h-[220px] w-full">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+        <DashCard className="xl:col-span-2">
+          <DashHeader title="Số ticket theo tháng" subtitle="Ticket tạo mới và đã đóng trong từng tháng">
+            <DashTag>{k.total} ticket trong kỳ</DashTag>
+          </DashHeader>
+          <DotGrid className="flex flex-1 flex-col">
+            <ChartContainer config={volumeConfig} className="min-h-[240px] w-full flex-1">
               <BarChart data={monthly} barGap={2}>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
                 <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} />
@@ -194,131 +215,116 @@ export function ReportDashboard({ tickets, categories, departments, filter, filt
                 <Bar dataKey="closed" fill="var(--color-closed)" radius={[4, 4, 0, 0]} maxBarSize={28} />
               </BarChart>
             </ChartContainer>
-          </CardContent>
-        </Card>
+          </DotGrid>
+          <LegendRow items={[{ color: 'var(--series-1)', label: 'Tạo mới' }, { color: 'var(--series-2)', label: 'Đã đóng' }]} />
+          <MetricRow items={[
+            { label: 'Đang mở', value: k.open, note: 'Ticket chưa đóng' },
+            { label: 'Quá hạn đang mở', value: k.overdueOpen, danger: k.overdueOpen > 0, note: 'Đã quá hạn SLA' },
+            { label: 'Hạn SLA trung bình', value: fmtHours(k.avgSlaHours), note: 'Theo loại sự cố' },
+            { label: 'Tháng nhiều sự cố nhất', value: busiest && busiest.created ? busiest.label : '—', note: busiest && busiest.created ? `${busiest.created} ticket tạo mới` : undefined },
+          ]} />
+        </DashCard>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Tỷ lệ đóng đúng hạn SLA theo tháng</CardTitle>
-            <p className="text-xs text-muted-foreground">Tính trên các ticket được đóng trong tháng</p>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={slaConfig} className="h-[220px] w-full">
-              <LineChart data={monthly} margin={{ top: 8, right: 16, left: 4 }}>
-                <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} />
-                <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tickFormatter={(v) => `${v}%`} tickLine={false} axisLine={false} width={40} fontSize={11} />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(value, _n, item) => (
-                        <div className="flex w-full items-center gap-2 whitespace-nowrap">
-                          <span className="text-muted-foreground">Đúng hạn SLA</span>
-                          <span className="ml-auto pl-3 font-[650] text-foreground">
-                            {String(value).replace('.', ',')}% <span className="font-normal text-muted-foreground">({item.payload.closedCount} ticket đóng)</span>
-                          </span>
-                        </div>
-                      )}
-                    />
-                  }
-                />
-                <Line dataKey="rate" type="linear" stroke="var(--color-rate)" strokeWidth={2} connectNulls
-                  dot={{ r: 4, fill: 'var(--color-rate)', stroke: 'var(--card)', strokeWidth: 2 }} activeDot={{ r: 6 }} />
-              </LineChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
+        <DashCard>
+          <DashHeader title="Đúng hạn SLA theo tháng" subtitle="Tính trên ticket được đóng trong tháng">
+            {lastM && <DashTag>{fmtPct(lastM.rate)}</DashTag>}
+          </DashHeader>
+          <ChartContainer config={slaConfig} className="min-h-[200px] w-full flex-1">
+            <LineChart data={monthly} margin={{ top: 8, right: 16, left: 4 }}>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} />
+              <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tickFormatter={(v) => `${v}%`} tickLine={false} axisLine={false} width={40} fontSize={11} />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    formatter={(value, _n, item) => (
+                      <div className="flex w-full items-center gap-2 whitespace-nowrap">
+                        <span className="text-muted-foreground">Đúng hạn SLA</span>
+                        <span className="ml-auto pl-3 font-[650] text-foreground">
+                          {String(value).replace('.', ',')}% <span className="font-normal text-muted-foreground">({item.payload.closedCount} ticket đóng)</span>
+                        </span>
+                      </div>
+                    )}
+                  />
+                }
+              />
+              <Line dataKey="rate" type="linear" stroke="var(--color-rate)" strokeWidth={2} connectNulls
+                dot={{ r: 4, fill: 'var(--color-rate)', stroke: 'var(--card)', strokeWidth: 2 }} activeDot={{ r: 6 }} />
+            </LineChart>
+          </ChartContainer>
+          <div className="flex flex-col gap-3">
+            {monthly.slice(-4).reverse().map((m) => (
+              <div key={m.key} className="flex items-center justify-between gap-4">
+                <span className="flex items-center gap-3"><Marker color="var(--series-1)" />
+                  <span className="text-body text-foreground/80">{m.label}</span></span>
+                <span className="flex items-center gap-4">
+                  <span className="text-caption text-muted-foreground">{m.closedCount} đóng</span>
+                  <span className="min-w-14 text-right text-body font-[650]">{m.rate === null ? '—' : fmtPct(m.rate)}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </DashCard>
       </div>
 
-      {/* So sanh phong ban */}
-      <Card>
-        <CardHeader><CardTitle>So sánh các phòng ban</CardTitle></CardHeader>
-        <CardContent className="p-0">
-          <Table maxHeight="max-h-[360px]">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="pl-5">Phòng ban</TableHead>
-                <TableHead className="text-right">Tổng ticket</TableHead>
-                <TableHead className="text-right">Đang mở</TableHead>
-                <TableHead className="text-right">Đã đóng</TableHead>
-                <TableHead className="w-[220px]">Đúng hạn SLA</TableHead>
-                <TableHead className="text-right">TG xử lý TB</TableHead>
-                <TableHead className="pr-5 text-right">Quá hạn đang mở</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {deptRows.map((d) => (
-                <TableRow key={d.dep_id}>
-                  <TableCell className="pl-5 font-medium">
-                    <span className="flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 shrink-0 rounded-[3px]" style={{ backgroundColor: depColor.get(d.dep_id) }} />
-                      {d.dep_name}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">{d.total}</TableCell>
-                  <TableCell className="text-right">{d.open}</TableCell>
-                  <TableCell className="text-right">{d.closed}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--surface-soft)]">
-                        <div className="h-full rounded-full bg-primary" style={{ width: `${Math.round(d.slaRate ?? 0)}%` }} />
-                      </div>
-                      <span className="w-14 text-right font-[650]">{fmtPct(d.slaRate)}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right text-muted-foreground">{fmtHours(d.mttr)}</TableCell>
-                  <TableCell className={`pr-5 text-right ${d.overdueOpen > 0 ? 'font-[650] text-red-700 dark:text-red-300' : 'text-muted-foreground'}`}>
-                    {d.overdueOpen}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {/* So sanh phong ban + nhan dinh */}
+      <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-3">
+        <DashCard className="xl:col-span-2">
+          <DashHeader title="So sánh các phòng ban" subtitle="Khối lượng, tỷ lệ đúng hạn và thời gian xử lý" />
+          <GridTable columns={deptCols} rows={deptRows} rowKey={(d) => d.dep_id} maxHeight="max-h-[320px]" />
+        </DashCard>
+
+        <DashCard>
+          <DashHeader title="Nhận định nhanh" subtitle="Tự động rút ra từ số liệu trong kỳ" />
+          <div className="flex flex-col gap-5">
+            <InsightItem first icon={<ShieldCheck />} tone={weakest && (weakest.slaRate ?? 100) < 70 ? 'danger' : 'primary'}
+              title={weakest ? `${weakest.dep_name}: ${fmtPct(weakest.slaRate)}` : 'Chưa có dữ liệu SLA'}
+              description="Phòng ban có tỷ lệ đóng đúng hạn SLA thấp nhất trong kỳ." />
+            <InsightItem icon={<Ticket />}
+              title={topCat ? `${topCat.name}: ${topCat.total} ticket` : 'Chưa có ticket'}
+              description="Loại sự cố xảy ra nhiều nhất, nên ưu tiên biện pháp phòng ngừa." />
+            <InsightItem icon={<Timer />}
+              title={lastM ? `SLA tháng ${lastM.label}: ${fmtPct(lastM.rate)}` : 'Chưa có tháng nào có ticket đóng'}
+              description={lastM && prevM
+                ? `${lastM.rate! >= prevM.rate! ? 'Tăng' : 'Giảm'} ${Math.abs(lastM.rate! - prevM.rate!).toFixed(1).replace('.', ',')} điểm so với tháng ${prevM.label}.`
+                : 'Cần thêm dữ liệu để so sánh giữa các tháng.'} />
+            <InsightItem icon={<Clock />} tone={k.overdueOpen > 0 ? 'danger' : 'primary'}
+              title={`${k.overdueOpen} ticket quá hạn đang mở`}
+              description={`Trong số ${k.open} ticket chưa đóng.`}
+              action={{ label: 'Danh sách ticket', href: '/tickets' }} />
+          </div>
+        </DashCard>
+      </div>
 
       {/* Theo loai su co */}
-      <Card>
-        <CardHeader><CardTitle>Theo loại sự cố</CardTitle></CardHeader>
-        <CardContent>
-          {catRows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Không có ticket trong kỳ này.</p>
-          ) : (
-            <ChartContainer config={{ total: { label: 'Số ticket' } }} className="w-full" style={{ height: Math.max(120, catChart.length * 40) }}>
-              <BarChart data={catChart} layout="vertical" margin={{ left: 0, right: 32 }}>
-                <XAxis type="number" hide allowDecimals={false} />
-                <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={180} fontSize={12} />
-                <ChartTooltip cursor={{ fill: 'var(--surface-soft)' }} content={<ChartTooltipContent hideLabel nameKey="name"
-                  formatter={(value, _n, item) => (
-                    <div className="flex w-full items-center gap-2 whitespace-nowrap">
-                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: severityColor(item.payload.prio) }} />
-                      <span className="text-muted-foreground">{item.payload.prio === 'OTHER' ? item.payload.name : `${item.payload.name} · ${PRIO_LABEL[item.payload.prio] || item.payload.prio}`}</span>
-                      <span className="ml-auto pl-3 font-[650] text-foreground">{value} ticket</span>
-                    </div>
-                  )} />} />
-                <Bar dataKey="total" radius={4} maxBarSize={22}>
-                  {catChart.map((c) => <CellFill key={c.name} fill={severityColor(c.prio)} />)}
-                  <LabelList dataKey="total" position="right" fontSize={12} className="fill-foreground" />
-                </Bar>
-              </BarChart>
-            </ChartContainer>
-          )}
-          <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
-            {PRIO_ORDER.map((p) => <Legend key={p} color={severityColor(p)} label={PRIO_LABEL[p]} />)}
-            {catChart.length < catRows.length && <Legend color={severityColor('OTHER')} label="Khác" />}
-          </div>
-        </CardContent>
-      </Card>
+      <DashCard>
+        <DashHeader title="Theo loại sự cố" subtitle="Tối đa 7 loại nhiều nhất, phần còn lại gộp vào Khác" />
+        {catRows.length === 0 ? (
+          <p className="text-body text-muted-foreground">Không có ticket trong kỳ này.</p>
+        ) : (
+          <ChartContainer config={{ total: { label: 'Số ticket' } }} className="w-full" style={{ height: Math.max(120, catChart.length * 40) }}>
+            <BarChart data={catChart} layout="vertical" margin={{ left: 0, right: 32 }}>
+              <XAxis type="number" hide allowDecimals={false} />
+              <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={180} fontSize={12} />
+              <ChartTooltip cursor={{ fill: 'var(--surface-soft)' }} content={<ChartTooltipContent hideLabel nameKey="name"
+                formatter={(value, _n, item) => (
+                  <div className="flex w-full items-center gap-2 whitespace-nowrap">
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: severityColor(item.payload.prio) }} />
+                    <span className="text-muted-foreground">{item.payload.prio === 'OTHER' ? item.payload.name : `${item.payload.name} · ${PRIO_LABEL[item.payload.prio] || item.payload.prio}`}</span>
+                    <span className="ml-auto pl-3 font-[650] text-foreground">{value} ticket</span>
+                  </div>
+                )} />} />
+              <Bar dataKey="total" radius={4} maxBarSize={22}>
+                {catChart.map((c) => <CellFill key={c.name} fill={severityColor(c.prio)} />)}
+                <LabelList dataKey="total" position="right" fontSize={12} className="fill-foreground" />
+              </Bar>
+            </BarChart>
+          </ChartContainer>
+        )}
+        <LegendRow items={[...PRIO_ORDER.map((p) => ({ color: severityColor(p), label: PRIO_LABEL[p] })),
+          ...(catChart.length < catRows.length ? [{ color: severityColor('OTHER'), label: 'Khác' }] : [])]} />
+      </DashCard>
     </div>
   )
 }
 
-
-function Legend({ color, label }: { color: string; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
-      {label}
-    </span>
-  )
-}
