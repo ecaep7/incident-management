@@ -52,14 +52,14 @@ export function TaskResultDialog({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0" />
-        <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-3rem)] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[24px] bg-background shadow-xl ring-1 ring-foreground/10 transition-all duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0 after:pointer-events-none after:absolute after:inset-0 after:rounded-[24px] after:bg-black/0 after:transition-colors data-nested-dialog-open:after:bg-black/30">
+        <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-3rem)] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[12px] bg-card shadow-xl ring-1 ring-foreground/10 transition-all duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0 after:pointer-events-none after:absolute after:inset-0 after:rounded-[12px] after:bg-black/0 after:transition-colors data-nested-dialog-open:after:bg-black/30">
           {task && (
             <>
               {/* Dau popup */}
               <div className="flex items-start justify-between gap-4 border-b px-6 pt-6 pb-4">
                 <div className="flex min-w-0 flex-col gap-1">
                   <span className="text-[13px] text-muted-foreground">{ticketCode} · Task #{task.task_id}</span>
-                  <Dialog.Title className="text-xl font-semibold tracking-[-0.02em]">Kết quả xử lý</Dialog.Title>
+                  <Dialog.Title className="text-h2">Kết quả xử lý</Dialog.Title>
                 </div>
                 <div className="flex items-center gap-2">
                   <ReviewStatusTag task={task} />
@@ -74,7 +74,7 @@ export function TaskResultDialog({
 
               {/* Noi dung cuon duoc */}
               <div className="flex flex-col gap-5 overflow-y-auto px-6 py-5">
-                <dl className="grid grid-cols-1 gap-x-6 gap-y-3 rounded-xl bg-[var(--surface-soft)] p-4 text-sm sm:grid-cols-2">
+                <dl className="grid grid-cols-1 gap-x-6 gap-y-3 rounded-[8px] bg-[var(--surface-soft)] p-4 text-sm sm:grid-cols-2">
                   <Meta icon={User} label="Người xử lý" value={task.handler_full_name || task.handler_user_id} />
                   <Meta icon={Compass} label="Hướng xử lý" value={task.direction === 'ONSITE' ? 'Hiện trường (ONSITE)' : task.direction === 'SYSTEM' ? 'Hệ thống (SYSTEM)' : task.direction || '—'} />
                   <Meta icon={CalendarPlus} label="Giao việc lúc" value={fmt(task.created_at)} />
@@ -103,7 +103,7 @@ export function TaskResultDialog({
                 {task.is_passed === false && task.admin_review_notes && (
                   <section className="flex flex-col gap-2">
                     <h3 className="text-sm font-semibold text-foreground">Lý do không đạt</h3>
-                    <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800 dark:bg-red-500/10 dark:text-red-200">{task.admin_review_notes}</p>
+                    <p className="rounded-[8px] bg-red-50 px-4 py-3 text-sm text-red-800 dark:bg-red-500/10 dark:text-red-200">{task.admin_review_notes}</p>
                   </section>
                 )}
 

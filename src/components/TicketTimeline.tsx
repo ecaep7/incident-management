@@ -27,7 +27,7 @@ export function TicketTimeline({ ticketId }: { ticketId: string }) {
 
   return (
     <Card>
-      <CardHeader><CardTitle className="text-base">Dòng thời gian xử lý</CardTitle></CardHeader>
+      <CardHeader><CardTitle>Dòng thời gian xử lý</CardTitle></CardHeader>
       <CardContent>
         {events === null ? (
           <p className="text-sm text-muted-foreground">Đang tải...</p>

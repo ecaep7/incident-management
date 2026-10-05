@@ -77,7 +77,7 @@ export default function IncidentDetailPage() {
     <div className="flex max-w-3xl flex-col gap-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-[26px] leading-[1.2] font-semibold tracking-[-0.01em] text-balance">{incident.alert_summary}</h1>
+          <h1 className="text-h1 text-balance">{incident.alert_summary}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {incident.device_ip} · {new Date(incident.received_at).toLocaleString('vi-VN')}
           </p>
@@ -89,7 +89,7 @@ export default function IncidentDetailPage() {
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Dữ liệu thô</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Dữ liệu thô</CardTitle></CardHeader>
         <CardContent>
           <pre className="overflow-auto rounded-md bg-muted p-4 text-xs">
             {JSON.stringify(JSON.parse(incident.raw_payload || '{}'), null, 2)}
@@ -98,7 +98,7 @@ export default function IncidentDetailPage() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Lịch sử yêu cầu xác minh</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Lịch sử yêu cầu xác minh</CardTitle></CardHeader>
         <CardContent className="flex flex-col gap-3">
           {verifications.length === 0 ? (
             <p className="text-sm text-muted-foreground">Chưa có yêu cầu nào.</p>
@@ -118,7 +118,7 @@ export default function IncidentDetailPage() {
 
       {isOpen && (
         <Card>
-          <CardHeader><CardTitle className="text-base">Hành động</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Hành động</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
               <Label>Yêu cầu xác minh thêm</Label>

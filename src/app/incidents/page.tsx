@@ -78,7 +78,7 @@ export default function IncidentsPage() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-[30px] leading-[1.1] font-semibold tracking-[-0.03em]">Hàng chờ cảnh báo</h1>
+        <h1 className="text-h1">Hàng chờ cảnh báo</h1>
         <p className="text-sm text-muted-foreground">Tự động cập nhật mỗi 15 giây</p>
       </div>
 

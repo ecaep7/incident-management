@@ -157,7 +157,7 @@ export default function TicketDetailPage() {
     <div className="flex max-w-3xl flex-col gap-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-[30px] leading-[1.1] font-semibold tracking-[-0.03em]">{ticket.ticket_code}</h1>
+          <h1 className="text-h1">{ticket.ticket_code}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Hướng xử lý: {ticket.direction} · Hạn SLA: {new Date(ticket.sla_deadline).toLocaleString('vi-VN')}
           </p>
@@ -179,7 +179,7 @@ export default function TicketDetailPage() {
       />
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Lịch sử xử lý ({tasks.length} lượt)</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Lịch sử xử lý ({tasks.length} lượt)</CardTitle></CardHeader>
         <CardContent className="flex flex-col gap-2">
           {tasks.map((tk) => {
             const files = attByTask.get(tk.task_id) || []
@@ -193,7 +193,7 @@ export default function TicketDetailPage() {
                 tabIndex={submitted ? 0 : undefined}
                 onClick={submitted ? () => { setMessage(''); setOpenTaskId(tk.task_id) } : undefined}
                 onKeyDown={submitted ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMessage(''); setOpenTaskId(tk.task_id) } } : undefined}
-                className={`flex items-center gap-3 rounded-xl border p-3 text-sm transition-colors ${submitted ? 'cursor-pointer hover:border-primary/40 hover:bg-[var(--surface-soft)]' : ''} ${needsReview ? 'border-primary/30 bg-[var(--block-blue)]/60' : ''}`}
+                className={`flex items-center gap-3 rounded-[8px] border p-3 text-sm transition-colors ${submitted ? 'cursor-pointer hover:border-primary/40 hover:bg-[var(--surface-soft)]' : ''} ${needsReview ? 'border-primary/30 bg-[var(--block-blue)]/60' : ''}`}
               >
                 <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${submitted ? 'bg-[var(--block-blue)] text-primary' : 'bg-muted text-muted-foreground'}`}>
                   {submitted ? <Send className="h-4 w-4" /> : <Hourglass className="h-4 w-4" />}
@@ -227,7 +227,7 @@ export default function TicketDetailPage() {
 
       {canReassign && (
         <Card>
-          <CardHeader><CardTitle className="text-base">Tái phân công</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Tái phân công</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-3">
             <div className="flex flex-col gap-2">
               <Label>Hướng xử lý</Label>

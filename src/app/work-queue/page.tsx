@@ -63,7 +63,7 @@ export default function WorkQueuePage() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-[30px] leading-[1.1] font-semibold tracking-[-0.03em]">Việc cần xử lý</h1>
+        <h1 className="text-h1">Việc cần xử lý</h1>
         <p className="text-sm text-muted-foreground">Tổng hợp những việc đang chờ Admin · tự động cập nhật mỗi 15 giây</p>
       </div>
 
@@ -107,7 +107,7 @@ function QueueCard({ title, empty, items, render }: {
 }) {
   return (
     <Card>
-      <CardHeader><CardTitle className="text-base">{title} ({items.length})</CardTitle></CardHeader>
+      <CardHeader><CardTitle>{title} ({items.length})</CardTitle></CardHeader>
       {/* Danh sach dai: chieu cao co dinh, cuon ben trong */}
       <CardContent className="scroll-thin flex max-h-[420px] flex-col gap-2 overflow-y-auto">
         {items.length === 0 ? <p className="text-sm text-muted-foreground">{empty}</p> : items.map(render)}

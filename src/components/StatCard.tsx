@@ -10,7 +10,7 @@ const BLOCK: Record<StatColor | 'zero', { bg: string; number: string }> = {
   amber: { bg: 'bg-[var(--block-cream)]', number: 'text-[#6B4E0A] dark:text-amber-200' },
   red: { bg: 'bg-[var(--block-pink)]', number: 'text-[#8C1D1D] dark:text-rose-200' },
   green: { bg: 'bg-[var(--block-mint)]', number: 'text-[#135C2A] dark:text-emerald-200' },
-  zero: { bg: 'bg-[var(--surface-soft)]', number: 'text-muted-foreground' },
+  zero: { bg: 'bg-card', number: 'text-muted-foreground' },
 }
 
 export function StatCard({ label, value, color, hint, onClick, active }: {
@@ -26,7 +26,7 @@ export function StatCard({ label, value, color, hint, onClick, active }: {
   return (
     <div
       className={cn(
-        'flex flex-col gap-3 rounded-[24px] p-5 text-foreground',
+        'flex flex-col gap-3 rounded-[12px] p-5 text-foreground',
         style.bg,
         onClick && 'cursor-pointer transition-transform hover:-translate-y-0.5',
         active && 'ring-2 ring-primary',

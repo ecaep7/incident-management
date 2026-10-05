@@ -177,7 +177,7 @@ export function ReportDashboard({ tickets, categories, departments, filter, filt
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Số ticket theo tháng</CardTitle>
+            <CardTitle>Số ticket theo tháng</CardTitle>
             <div className="flex gap-4 text-xs text-muted-foreground">
               <Legend color="var(--series-1)" label="Tạo mới" />
               <Legend color="var(--series-2)" label="Đã đóng" />
@@ -199,7 +199,7 @@ export function ReportDashboard({ tickets, categories, departments, filter, filt
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Tỷ lệ đóng đúng hạn SLA theo tháng</CardTitle>
+            <CardTitle>Tỷ lệ đóng đúng hạn SLA theo tháng</CardTitle>
             <p className="text-xs text-muted-foreground">Tính trên các ticket được đóng trong tháng</p>
           </CardHeader>
           <CardContent>
@@ -232,7 +232,7 @@ export function ReportDashboard({ tickets, categories, departments, filter, filt
 
       {/* So sanh phong ban */}
       <Card>
-        <CardHeader><CardTitle className="text-base">So sánh các phòng ban</CardTitle></CardHeader>
+        <CardHeader><CardTitle>So sánh các phòng ban</CardTitle></CardHeader>
         <CardContent className="p-0">
           <Table maxHeight="max-h-[360px]">
             <TableHeader>
@@ -279,7 +279,7 @@ export function ReportDashboard({ tickets, categories, departments, filter, filt
 
       {/* Theo loai su co */}
       <Card>
-        <CardHeader><CardTitle className="text-base">Theo loại sự cố</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Theo loại sự cố</CardTitle></CardHeader>
         <CardContent>
           {catRows.length === 0 ? (
             <p className="text-sm text-muted-foreground">Không có ticket trong kỳ này.</p>

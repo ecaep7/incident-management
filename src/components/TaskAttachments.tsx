@@ -80,12 +80,12 @@ export function TaskAttachments({ items }: { items: TaskAttachment[] }) {
             href={a.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-center gap-3 rounded-md border bg-background px-3 py-2 text-sm hover:border-primary/40 hover:bg-[var(--surface-soft)]"
+            className="group flex items-center gap-3 rounded-md border bg-card px-3 py-2 text-sm hover:border-primary/40 hover:bg-[var(--surface-soft)]"
           >
             {inner}
           </a>
         ) : (
-          <div key={a.attachment_id} className="flex items-center gap-3 rounded-md border bg-background px-3 py-2 text-sm">
+          <div key={a.attachment_id} className="flex items-center gap-3 rounded-md border bg-card px-3 py-2 text-sm">
             {inner}
           </div>
         )

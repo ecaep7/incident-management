@@ -88,7 +88,7 @@ export default function MyTasksPage() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-[30px] leading-[1.1] font-semibold tracking-[-0.03em]">Việc của tôi</h1>
+        <h1 className="text-h1">Việc của tôi</h1>
         <p className="text-sm text-muted-foreground">
           Xin chào {profile?.full_name}{profile?.department?.dep_name ? ` · ${profile.department.dep_name}` : ''} · tự động cập nhật mỗi 15 giây
         </p>

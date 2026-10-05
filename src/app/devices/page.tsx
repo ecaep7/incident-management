@@ -62,8 +62,8 @@ export default function DevicesPage() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-[30px] leading-[1.1] font-semibold tracking-[-0.03em]">Thiết bị</h1>
-        <p className="text-muted-foreground">Theo dõi lịch sử sự cố của từng thiết bị</p>
+        <h1 className="text-h1">Thiết bị</h1>
+        <p className="text-sm text-muted-foreground">Theo dõi lịch sử sự cố của từng thiết bị</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
