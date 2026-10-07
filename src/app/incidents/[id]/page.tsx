@@ -183,7 +183,7 @@ export default function IncidentDetailPage() {
       <Sheet open={panel === 'ticket'} onOpenChange={(o) => setPanel(o ? 'ticket' : null)}>
         <SheetContent className="w-full gap-0 overflow-y-auto sm:max-w-md" overlayClassName="bg-black/5 supports-backdrop-filter:backdrop-blur-none">
           <SheetHeader className="border-b px-6 py-5">
-            <SheetTitle className="text-h3">Tạo ticket cho cảnh báo #{incidentId}</SheetTitle>
+            <SheetTitle className="text-lg font-semibold">Tạo ticket cho cảnh báo #{incidentId}</SheetTitle>
             {aiVerdict === 'TRUE_INCIDENT' && <AiPrefillNote />}
           </SheetHeader>
           <div className="px-6 py-5">

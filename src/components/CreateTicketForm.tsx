@@ -99,14 +99,14 @@ export function CreateTicketForm({ incidentId, confirm = true, onCreated, onAiLo
           <div className="flex flex-col gap-2">
         <FieldLabel label="Loại sự cố" aiValue={ai?.suggested_category_id ? String(ai.suggested_category_id) : null} value={categoryId} />
         <Select value={categoryId} onValueChange={(v) => setCategoryId(v ?? '')}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full font-light text-foreground/80">
             <SelectValue placeholder="-- Chọn --">
               {(() => { const c = categories.find((x) => String(x.category_id) === categoryId); return c ? `${c.category_name} (${c.priority_level}, SLA ${c.sla_hours}h)` : null })()}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {categories.map((c) => (
-              <SelectItem key={c.category_id} value={String(c.category_id)}>
+              <SelectItem className="font-light" key={c.category_id} value={String(c.category_id)}>
                 {c.category_name} ({c.priority_level}, SLA {c.sla_hours}h)
               </SelectItem>
             ))}
@@ -117,43 +117,43 @@ export function CreateTicketForm({ incidentId, confirm = true, onCreated, onAiLo
       <div className="flex flex-col gap-2">
         <FieldLabel label="Hướng xử lý" aiValue={ai?.suggested_direction ?? null} value={direction} />
         <Select value={direction} onValueChange={(v) => setDirection(v ?? '')}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full font-light text-foreground/80">
             <SelectValue>{direction === 'ONSITE' ? 'Hiện trường (ONSITE)' : 'Hệ thống (SYSTEM)'}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="SYSTEM">Hệ thống (SYSTEM)</SelectItem>
-            <SelectItem value="ONSITE">Hiện trường (ONSITE)</SelectItem>
+            <SelectItem className="font-light" value="SYSTEM">Hệ thống (SYSTEM)</SelectItem>
+            <SelectItem className="font-light" value="ONSITE">Hiện trường (ONSITE)</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label>Phòng ban phụ trách</Label>
+        <Label className="font-semibold">Phòng ban phụ trách</Label>
         <Select value={depId} onValueChange={(v) => setDepId(v ?? '')}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full font-light text-foreground/80">
             <SelectValue placeholder="-- Chọn --">
               {departments.find((d) => String(d.dep_id) === depId)?.dep_name}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {departments.map((d) => (
-              <SelectItem key={d.dep_id} value={String(d.dep_id)}>{d.dep_name}</SelectItem>
+              <SelectItem className="font-light" key={d.dep_id} value={String(d.dep_id)}>{d.dep_name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label>Người xử lý</Label>
+        <Label className="font-semibold">Người xử lý</Label>
         <Select value={handlerId} onValueChange={(v) => setHandlerId(v ?? '')} disabled={!depId}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full font-light text-foreground/80">
             <SelectValue placeholder={depId ? '-- Chọn --' : 'Chọn phòng ban trước'}>
               {handlers.find((h) => h.user_id === handlerId)?.full_name}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {handlers.map((h) => (
-              <SelectItem key={h.user_id} value={h.user_id}>{h.full_name}</SelectItem>
+              <SelectItem className="font-light" key={h.user_id} value={h.user_id}>{h.full_name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -187,7 +187,7 @@ export function CreateTicketForm({ incidentId, confirm = true, onCreated, onAiLo
 function FieldLabel({ label, aiValue, value }: { label: string; aiValue: string | null; value: string }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <Label>{label}</Label>
+      <Label className="font-semibold">{label}</Label>
       {aiValue && (value === aiValue ? (
         <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
           <Sparkles className="h-3 w-3" />Gợi ý bởi AI

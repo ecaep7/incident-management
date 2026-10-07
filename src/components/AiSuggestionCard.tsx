@@ -81,8 +81,8 @@ export function AiSuggestionCard({ suggestion, state }: {
           {suggestion.verdict === 'TRUE_INCIDENT' && (
             <dl className="flex flex-col gap-2 text-sm">
               <div className="flex justify-between gap-3">
-                <dt className="text-muted-foreground">Loại sự cố</dt>
-                <dd className="text-right font-semibold text-foreground">
+                <dt className="font-semibold text-foreground">Loại sự cố</dt>
+                <dd className="text-right font-light text-foreground/70">
                   {suggestion.incident_category?.category_name ?? `Loại #${suggestion.suggested_category_id}`}
                   {suggestion.incident_category?.sla_hours != null && (
                     <span className="block text-xs font-normal text-muted-foreground">SLA {suggestion.incident_category.sla_hours} giờ</span>
@@ -90,8 +90,8 @@ export function AiSuggestionCard({ suggestion, state }: {
                 </dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="text-muted-foreground">Hướng xử lý</dt>
-                <dd className="font-semibold text-foreground">{suggestion.suggested_direction === 'ONSITE' ? 'Hiện trường' : 'Hệ thống'}</dd>
+                <dt className="font-semibold text-foreground">Hướng xử lý</dt>
+                <dd className="font-light text-foreground/70">{suggestion.suggested_direction === 'ONSITE' ? 'Hiện trường' : 'Hệ thống'}</dd>
               </div>
             </dl>
           )}
@@ -100,8 +100,8 @@ export function AiSuggestionCard({ suggestion, state }: {
           {suggestion.confidence != null && (
             <div className="flex flex-col gap-1.5 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Độ tin cậy</span>
-                <span className="font-medium text-foreground">{confidenceLevel(suggestion.confidence)} · {Math.round(suggestion.confidence * 100)}%</span>
+                <span className="font-semibold text-foreground">Độ tin cậy</span>
+                <span className="font-light text-foreground/70">{confidenceLevel(suggestion.confidence)} · {Math.round(suggestion.confidence * 100)}%</span>
               </div>
               <div className="h-1.5 overflow-hidden rounded-full bg-primary/10">
                 <div className="h-full rounded-full bg-primary" style={{ width: `${Math.round(suggestion.confidence * 100)}%` }} />
@@ -111,7 +111,7 @@ export function AiSuggestionCard({ suggestion, state }: {
 
           {/* Giai thich */}
           {suggestion.reasoning && (
-            <blockquote className="border-l-2 border-primary/40 pl-3 text-sm leading-relaxed text-foreground/80">
+            <blockquote className="border-l-2 border-primary/40 pl-3 text-sm font-light leading-relaxed text-foreground/70">
               {suggestion.reasoning}
             </blockquote>
           )}
