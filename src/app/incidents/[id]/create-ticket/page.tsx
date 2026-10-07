@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { Sparkles } from 'lucide-react'
+import { fetchLatestSuggestion, type AiSuggestion } from '@/lib/aiSuggestion'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -30,6 +32,7 @@ export default function CreateTicketPage() {
   const [submitting, setSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [ai, setAi] = useState<AiSuggestion | null>(null)
 
   useEffect(() => {
     async function loadMasterData() {
@@ -37,9 +40,17 @@ export default function CreateTicketPage() {
       setCategories(cats || [])
       const { data: deps } = await supabase.from('department').select('dep_id, dep_name')
       setDepartments(deps || [])
+
+      // Dien san loai su co + huong xu ly theo goi y AI (chi khi AI ket luan la su co that). Admin van doi duoc.
+      const sug = await fetchLatestSuggestion(incidentId)
+      if (sug?.verdict === 'TRUE_INCIDENT') {
+        setAi(sug)
+        if (sug.suggested_category_id) setCategoryId(String(sug.suggested_category_id))
+        if (sug.suggested_direction) setDirection(sug.suggested_direction)
+      }
     }
     loadMasterData()
-  }, [])
+  }, [incidentId])
 
   useEffect(() => {
     if (!depId) { setHandlers([]); return }
@@ -89,10 +100,16 @@ export default function CreateTicketPage() {
       <Card>
         <CardHeader>
           <CardTitle>Tạo ticket cho cảnh báo #{incidentId}</CardTitle>
+          {ai && (
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              Đã điền sẵn loại sự cố và hướng xử lý theo gợi ý của AI. Bạn kiểm tra lại trước khi tạo.
+            </p>
+          )}
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <Label>Loại sự cố</Label>
+            <FieldLabel label="Loại sự cố" aiValue={ai?.suggested_category_id ? String(ai.suggested_category_id) : null} value={categoryId} />
             <Select value={categoryId} onValueChange={(v) => setCategoryId(v ?? '')}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="-- Chọn --">
@@ -110,7 +127,7 @@ export default function CreateTicketPage() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label>Hướng xử lý</Label>
+            <FieldLabel label="Hướng xử lý" aiValue={ai?.suggested_direction ?? null} value={direction} />
             <Select value={direction} onValueChange={(v) => setDirection(v ?? '')}>
               <SelectTrigger className="w-full">
                 <SelectValue>{direction === 'ONSITE' ? 'Hiện trường (ONSITE)' : 'Hệ thống (SYSTEM)'}</SelectValue>
@@ -176,6 +193,21 @@ export default function CreateTicketPage() {
         confirmLabel="Tạo ticket"
         onConfirm={handleSubmit}
       />
+    </div>
+  )
+}
+// Nhan cua o nhap + dau hieu goi y AI: con giu gia tri AI goi y, hay Admin da doi sang gia tri khac
+function FieldLabel({ label, aiValue, value }: { label: string; aiValue: string | null; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <Label>{label}</Label>
+      {aiValue && (value === aiValue ? (
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
+          <Sparkles className="h-3 w-3" />Gợi ý bởi AI
+        </span>
+      ) : (
+        <span className="text-xs text-muted-foreground">Đã thay đổi so với gợi ý</span>
+      ))}
     </div>
   )
 }

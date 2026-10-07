@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useProfile } from '@/lib/useProfile'
 import { supabase } from '@/lib/supabase'
@@ -11,6 +11,8 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { SeverityTag, IncidentStatusTag } from '@/components/Tag'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { AiSuggestionCard } from '@/components/AiSuggestionCard'
+import { fetchLatestSuggestion, countFailedSuggestions, type AiSuggestion } from '@/lib/aiSuggestion'
 
 export default function IncidentDetailPage() {
   const { profile, loading: loadingProfile } = useProfile()
@@ -26,6 +28,10 @@ export default function IncidentDetailPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [confirmReject, setConfirmReject] = useState(false)
+  const [aiSuggestion, setAiSuggestion] = useState<AiSuggestion | null>(null)
+  const [aiFailed, setAiFailed] = useState(0)
+  const reasonRef = useRef<HTMLTextAreaElement>(null)
+  const noteRef = useRef<HTMLTextAreaElement>(null)
 
   async function loadData() {
     const { data: incidentData } = await supabase
@@ -39,7 +45,31 @@ export default function IncidentDetailPage() {
     setLoadingData(false)
   }
 
+  // Goi y AI (chi Admin doc duoc). n8n chay moi phut, nen khi chua co goi y thi kiem tra lai moi 15 giay.
+  async function loadAi() {
+    const sug = await fetchLatestSuggestion(incidentId)
+    setAiSuggestion(sug)
+    if (!sug) setAiFailed(await countFailedSuggestions(incidentId))
+    return sug
+  }
+
   useEffect(() => { if (incidentId) loadData() }, [incidentId])
+
+  const isAdmin = profile?.role?.role_name === 'Admin'
+  useEffect(() => {
+    if (!incidentId || !isAdmin) return
+    let timer: ReturnType<typeof setInterval> | undefined
+    loadAi().then((sug) => {
+      if (!sug) timer = setInterval(async () => { if (await loadAi()) clearInterval(timer) }, 15000)
+    })
+    return () => clearInterval(timer)
+  }, [incidentId, isAdmin])
+
+  function fillField(ref: React.RefObject<HTMLTextAreaElement | null>, setter: (v: string) => void, text: string) {
+    setter(text)
+    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    ref.current?.focus()
+  }
 
   async function handleReject() {
     if (!reason) { setMessage('Cần nhập lý do từ chối'); return }
@@ -88,6 +118,17 @@ export default function IncidentDetailPage() {
         </div>
       </div>
 
+      {isAdmin && (aiSuggestion || isOpen) && (
+        <AiSuggestionCard
+          suggestion={aiSuggestion}
+          state={aiSuggestion ? 'ready' : aiFailed >= 3 ? 'failed' : 'pending'}
+          isOpen={isOpen}
+          onCreateTicket={() => router.push(`/incidents/${incidentId}/create-ticket`)}
+          onUseAsReason={(t) => fillField(reasonRef, setReason, t)}
+          onUseAsNote={(t) => fillField(noteRef, setNote, t)}
+        />
+      )}
+
       <Card>
         <CardHeader><CardTitle>Dữ liệu thô</CardTitle></CardHeader>
         <CardContent>
@@ -122,7 +163,7 @@ export default function IncidentDetailPage() {
           <CardContent className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
               <Label>Yêu cầu xác minh thêm</Label>
-              <Textarea value={note} onChange={(e) => setNote(e.target.value)} />
+              <Textarea ref={noteRef} value={note} onChange={(e) => setNote(e.target.value)} />
               <Button onClick={handleRequestVerification} disabled={actionLoading} className="self-start">
                 Gửi yêu cầu
               </Button>
@@ -132,7 +173,7 @@ export default function IncidentDetailPage() {
 
             <div className="flex flex-col gap-2">
               <Label>Từ chối (cảnh báo sai)</Label>
-              <Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Lý do từ chối" />
+              <Textarea ref={reasonRef} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Lý do từ chối" />
               <Button
                 onClick={() => {
                   if (!reason) { setMessage('Cần nhập lý do từ chối'); return }
