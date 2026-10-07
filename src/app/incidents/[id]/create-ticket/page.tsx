@@ -99,10 +99,10 @@ export default function CreateTicketPage() {
     <div className="max-w-lg">
       <Card>
         <CardHeader>
-          <CardTitle>Tạo ticket cho cảnh báo #{incidentId}</CardTitle>
+          <CardTitle className="font-semibold">Tạo ticket cho cảnh báo #{incidentId}</CardTitle>
           {ai && (
-            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
+            <p className="flex items-center gap-1.5 text-[12px] italic text-muted-foreground">
+              <Sparkles className="h-3 w-3 shrink-0 text-primary" />
               Đã điền sẵn loại sự cố và hướng xử lý theo gợi ý của AI. Bạn kiểm tra lại trước khi tạo.
             </p>
           )}

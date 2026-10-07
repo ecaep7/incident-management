@@ -103,7 +103,11 @@ export default function IncidentDetailPage() {
 
   const isOpen = incident.current_status !== 'Ticket_Created' && incident.current_status !== 'Closed_False'
 
+  const showAi = isAdmin && (!!aiSuggestion || isOpen)
+
   return (
+    // Co goi y AI: chia 2 cot, card AI nam doc ben phai va dinh theo khi cuon (sticky)
+    <div className={showAi ? 'grid max-w-6xl grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]' : ''}>
     <div className="flex max-w-3xl flex-col gap-6">
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -117,17 +121,6 @@ export default function IncidentDetailPage() {
           <IncidentStatusTag status={incident.current_status} />
         </div>
       </div>
-
-      {isAdmin && (aiSuggestion || isOpen) && (
-        <AiSuggestionCard
-          suggestion={aiSuggestion}
-          state={aiSuggestion ? 'ready' : aiFailed >= 3 ? 'failed' : 'pending'}
-          isOpen={isOpen}
-          onCreateTicket={() => router.push(`/incidents/${incidentId}/create-ticket`)}
-          onUseAsReason={(t) => fillField(reasonRef, setReason, t)}
-          onUseAsNote={(t) => fillField(noteRef, setNote, t)}
-        />
-      )}
 
       <Card>
         <CardHeader><CardTitle>Dữ liệu thô</CardTitle></CardHeader>
@@ -205,6 +198,20 @@ export default function IncidentDetailPage() {
         tone="destructive"
         onConfirm={handleReject}
       />
+    </div>
+
+      {showAi && (
+        <aside className="lg:sticky lg:top-6">
+          <AiSuggestionCard
+            suggestion={aiSuggestion}
+            state={aiSuggestion ? 'ready' : aiFailed >= 3 ? 'failed' : 'pending'}
+            isOpen={isOpen}
+            onCreateTicket={() => router.push(`/incidents/${incidentId}/create-ticket`)}
+            onUseAsReason={(t) => fillField(reasonRef, setReason, t)}
+            onUseAsNote={(t) => fillField(noteRef, setNote, t)}
+          />
+        </aside>
+      )}
     </div>
   )
 }

@@ -10,8 +10,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Download } from 'lucide-react'
-import { AiVerdictTag } from '@/components/AiSuggestionCard'
-import type { AiVerdict } from '@/lib/aiSuggestion'
 import { downloadCsv, fmtDateTime } from '@/lib/exportCsv'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -24,7 +22,6 @@ export default function IncidentsPage() {
   const { profile, loading: loadingProfile } = useProfile()
   const [incidents, setIncidents] = useState<any[]>([])
   const [loadingData, setLoadingData] = useState(true)
-  const [aiByIncident, setAiByIncident] = useState<Map<number, { verdict: AiVerdict; confidence: number | null }>>(new Map())
 
   const [keyword, setKeyword] = useState('')
   const [severityFilter, setSeverityFilter] = useState('all')
@@ -39,16 +36,6 @@ export default function IncidentsPage() {
 
       if (!error) setIncidents(data)
       setLoadingData(false)
-
-      // Ket luan AI gan nhat cua tung canh bao (chi Admin doc duoc; nguoi khac nhan ve rong)
-      const { data: ai } = await supabase
-        .from('ai_suggestion')
-        .select('incident_id, verdict, confidence, created_at')
-        .eq('status', 'OK')
-        .order('created_at', { ascending: false })
-      const latest = new Map<number, { verdict: AiVerdict; confidence: number | null }>()
-      ;(ai || []).forEach((r) => { if (!latest.has(r.incident_id)) latest.set(r.incident_id, { verdict: r.verdict, confidence: r.confidence }) })
-      setAiByIncident(latest)
     }
 
     loadIncidents()
@@ -164,7 +151,6 @@ export default function IncidentsPage() {
                   <TableHead>Tóm tắt</TableHead>
                   <TableHead>IP thiết bị</TableHead>
                   <TableHead>Trạng thái</TableHead>
-                  <TableHead>Gợi ý AI</TableHead>
                   <TableHead>Thời gian</TableHead>
                 </TableRow>
               </TableHeader>
@@ -182,11 +168,6 @@ export default function IncidentsPage() {
                     <TableCell className="text-muted-foreground">{i.device_ip}</TableCell>
                     <TableCell>
                       <IncidentStatusTag status={i.current_status} />
-                    </TableCell>
-                    <TableCell>
-                      {aiByIncident.get(i.incident_id)
-                        ? <AiVerdictTag verdict={aiByIncident.get(i.incident_id)!.verdict} confidence={aiByIncident.get(i.incident_id)!.confidence} />
-                        : <span className="text-muted-foreground">—</span>}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {new Date(i.received_at).toLocaleString('vi-VN')}
