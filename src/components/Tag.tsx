@@ -57,7 +57,7 @@ export const INCIDENT_STATUS_LABEL: Record<string, string> = {
   Closed_False: 'Cảnh báo sai',
 }
 const INCIDENT_STATUS_TONE: Record<string, TagTone> = {
-  NEW: 'orange', Verifying: 'amber', Ticket_Created: 'blue', Closed_False: 'gray',
+  NEW: 'orange', Verifying: 'pending', Ticket_Created: 'blue', Closed_False: 'gray',
 }
 
 export function IncidentStatusTag({ status }: { status?: string | null }) {
