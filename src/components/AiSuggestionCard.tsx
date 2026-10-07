@@ -1,6 +1,7 @@
 'use client'
 
-import { Sparkles, ArrowRight, Loader2, CircleAlert } from 'lucide-react'
+import { Sparkles, Loader2, CircleAlert } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Tag, type TagTone } from '@/components/Tag'
 import { AI_VERDICT_LABEL, confidenceLevel, type AiSuggestion, type AiVerdict } from '@/lib/aiSuggestion'
 
@@ -31,15 +32,9 @@ function relTime(v: string) {
   return new Date(v).toLocaleString('vi-VN')
 }
 
-export function AiSuggestionCard({
-  suggestion, state, isOpen, onCreateTicket, onUseAsReason, onUseAsNote,
-}: {
+export function AiSuggestionCard({ suggestion, state }: {
   suggestion: AiSuggestion | null
-  state: 'pending' | 'failed' | 'ready'
-  isOpen: boolean // canh bao con dang cho xu ly?
-  onCreateTicket: () => void
-  onUseAsReason: (text: string) => void
-  onUseAsNote: (text: string) => void
+  state: 'loading' | 'pending' | 'failed' | 'ready'
 }) {
   return (
     <section className="flex flex-col gap-4 rounded-[12px] bg-[#F2F7FD] p-5 ring-1 ring-primary/15 dark:bg-[#11223A] dark:ring-primary/25">
@@ -50,6 +45,15 @@ export function AiSuggestionCard({
         </span>
         <h2 className="text-h3">Gợi ý của AI</h2>
       </div>
+
+      {state === 'loading' && (
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-6 w-28 bg-primary/10" />
+          <Skeleton className="h-4 w-full bg-primary/10" />
+          <Skeleton className="h-4 w-4/5 bg-primary/10" />
+          <Skeleton className="h-16 w-full bg-primary/10" />
+        </div>
+      )}
 
       {state === 'pending' && (
         <p className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -112,25 +116,6 @@ export function AiSuggestionCard({
             </blockquote>
           )}
 
-          {/* Nut hanh dong (chi khi canh bao con mo) */}
-          {isOpen && suggestion.verdict === 'TRUE_INCIDENT' && (
-            <button onClick={onCreateTicket}
-              className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-[17px] bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85">
-              Tạo ticket theo gợi ý <ArrowRight className="h-4 w-4" />
-            </button>
-          )}
-          {isOpen && suggestion.verdict === 'FALSE_POSITIVE' && suggestion.reasoning && (
-            <button onClick={() => onUseAsReason(suggestion.reasoning!)}
-              className="inline-flex h-10 w-full items-center justify-center rounded-[17px] border border-primary/30 bg-card px-4 text-sm font-medium text-primary hover:bg-primary/5">
-              Dùng làm lý do từ chối
-            </button>
-          )}
-          {isOpen && suggestion.verdict === 'NEED_VERIFICATION' && suggestion.reasoning && (
-            <button onClick={() => onUseAsNote(suggestion.reasoning!)}
-              className="inline-flex h-10 w-full items-center justify-center rounded-[17px] border border-primary/30 bg-card px-4 text-sm font-medium text-primary hover:bg-primary/5">
-              Dùng làm nội dung yêu cầu xác minh
-            </button>
-          )}
         </>
       )}
     </section>
