@@ -91,5 +91,5 @@ Alerts will not be accepted until the devices are registered.
 ## Author
 
 Do Thi Thanh Binh
-Program: Management Information Systems, National Economics University, Belarus.Program: Management Information Systems, National Economics University, Belarus.
+Program: Management Information Systems, National Economics University, Vietnam.Program: Management Information Systems, National Economics University, Vietnam.
 [LinkedIn](https://www.linkedin.com/in/binh-do-thi-thanh-b171aa328/) · dothithanhbinh.work@gmail.com
