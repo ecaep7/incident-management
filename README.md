@@ -41,7 +41,7 @@ DASHBOARDS will be company-wide view for managers and a personal performance vie
 
 ## AI-Assisted Triage
 
-If a new alert comes up, the system will forward the information to Gemini and receive back:
+If a new alert comes up, the system will forward the information to Groq and receive back:
 
 A recommended goal for the kind of incident.A proposed goal of the type of incident.
 - a proposed handling direction: either ONSITE (must visit the site) or SYSTEM (will be fixed from the office).
