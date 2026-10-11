@@ -4,17 +4,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ===== THANG CHU (typescale) dung chung toan he thong =====
-   Font: Plus Jakarta Sans. Khoang cach theo boi so 4px.
-   text-h1      28px / 600  - tieu de trang
-   text-h2      20px / 600  - tieu de popup, tieu de lon trong trang
-   text-h3      16px / 600  - tieu de khoi (card)
-   text-body    14px / 400  - noi dung chinh
-   text-caption 13px / 400  - nhan, thong tin phu (mau nhat)
-   text-micro   12px / 400  - ghi chu, thoi gian, goi y (mau nhat)
-   So lieu KPI giu co rieng (lon). */
 @theme {
-  --text-h1: 35px;
+  --text-h1: 30px;
   --text-h1--line-height: 1.2;
   --text-h1--letter-spacing: -0.02em;
   --text-h1--font-weight: 600;
@@ -25,10 +16,10 @@
   --text-h3: 16px;
   --text-h3--line-height: 1.4;
   --text-h3--letter-spacing: -0.01em;
-  --text-h3--font-weight: 200;
+  --text-h3--font-weight: 600;
   --text-body: 14px;
   --text-body--line-height: 1.5;
-  --text-body--font-weight: 200;
+  --text-body--font-weight: 400;
   --text-caption: 14px;
   --text-caption--line-height: 1.5;
   --text-caption--font-weight: 200;
@@ -36,18 +27,19 @@
   --text-micro--line-height: 1.5;
   --text-micro--font-weight: 200;
     /* Co chu mac dinh cua Tailwind - dung o hau het noi dung */
-  --text-xs: 12px;
+  --text-xs: 14px;
   --text-xs--line-height: 1.5;
-  --text-sm: 15px;
-  --text-sm--line-height: 1.1;
-  --text-sm--font-weight: 00;
+  --text-xs--font-weight: 400;
+  --text-sm: 16px;
+  --text-sm--line-height: 1.5;
+  --text-sm--font-weight: 500;
   --text-base: 16px;
   --text-base--line-height: 1.5;
 
-  --font-weight-normal: 00;
-  --font-weight-medium: 00;
-  --font-weight-semibold: 00;
-  --font-weight-bold: 00;
+  --font-weight-normal: 400;
+  --font-weight-medium: 600;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
 }
 
 @theme inline {
