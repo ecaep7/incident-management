@@ -399,7 +399,7 @@ export function KpiCard({ label, icon, value, delta, goodWhen, progress, hint, d
           <span className="text-muted-foreground">{icon}</span>
         </div>
         <div className="flex items-end gap-2">
-          <span className={`text-[40px] leading-none font-[520] tracking-[-0.03em] ${danger ? 'text-red-700 dark:text-red-300' : ''}`}>{value}</span>
+          <span className={`text-[35px] leading-none font-[520] tracking-[-0.03em] ${danger ? 'text-red-700 dark:text-red-300' : ''}`}>{value}</span>
           {delta !== null && (
             <span className={`mb-1 inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-medium ${good ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300'}`}>
               {delta >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}

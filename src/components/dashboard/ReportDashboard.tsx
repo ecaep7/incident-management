@@ -241,7 +241,7 @@ export function ReportDashboard({ tickets, categories, departments, filter, filt
                 <TableHead className="text-right">Tổng ticket</TableHead>
                 <TableHead className="text-right">Đang mở</TableHead>
                 <TableHead className="text-right">Đã đóng</TableHead>
-                <TableHead className="w-[220px]">Đúng hạn SLA</TableHead>
+                <TableHead className="w-[220px] text-right">Đúng hạn SLA</TableHead>
                 <TableHead className="text-right">TG xử lý TB</TableHead>
                 <TableHead className="pr-5 text-right">Quá hạn đang mở</TableHead>
               </TableRow>
@@ -263,7 +263,7 @@ export function ReportDashboard({ tickets, categories, departments, filter, filt
                       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--surface-soft)]">
                         <div className="h-full rounded-full bg-primary" style={{ width: `${Math.round(d.slaRate ?? 0)}%` }} />
                       </div>
-                      <span className="w-14 text-right font-[650]">{fmtPct(d.slaRate)}</span>
+                      <span className="w-14 text-right font-[520]">{fmtPct(d.slaRate)}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">{fmtHours(d.mttr)}</TableCell>
@@ -287,7 +287,7 @@ export function ReportDashboard({ tickets, categories, departments, filter, filt
             <ChartContainer config={{ total: { label: 'Số ticket' } }} className="w-full" style={{ height: Math.max(120, catChart.length * 40) }}>
               <BarChart data={catChart} layout="vertical" margin={{ left: 0, right: 32 }}>
                 <XAxis type="number" hide allowDecimals={false} />
-                <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={180} fontSize={12} />
+                <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={180} fontSize={14} />
                 <ChartTooltip cursor={{ fill: 'var(--surface-soft)' }} content={<ChartTooltipContent hideLabel nameKey="name"
                   formatter={(value, _n, item) => (
                     <div className="flex w-full items-center gap-2 whitespace-nowrap">
