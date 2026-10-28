@@ -28,8 +28,7 @@ export default function LoginPage() {
       setError('Sai email hoặc mật khẩu')
       return
     }
-
-    router.push('/dashboard')
+    window.location.href = '/dashboard'
   }
 
   return (
