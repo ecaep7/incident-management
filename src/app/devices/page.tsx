@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Tag } from '@/components/Tag'
 import { StatCard } from '@/components/StatCard'
+import { Download } from 'lucide-react'
+import { downloadCsv, fmtDateTime } from '@/lib/exportCsv'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -59,11 +61,30 @@ export default function DevicesPage() {
   const openTickets = devices.reduce((n, d) => n + Number(d.open_tickets || 0), 0)
   const devicesWithOpen = devices.filter((d) => Number(d.open_tickets) > 0).length
 
+  // Xuat danh sach DANG HIEN THI (da ap bo loc) ra file mo duoc bang Excel.
+  // Viewer khong co cot canh bao (dung voi quyen xem tren man hinh).
+  function exportExcel() {
+    const header = ['Mã thiết bị', 'Tên thiết bị', 'Loại', 'Vị trí', 'IP quản lý', 'Tổng sự cố', 'Ticket đang mở']
+    if (isAdmin) header.push('Cảnh báo sai', 'Tổng cảnh báo')
+    header.push('Sự cố gần nhất')
+    downloadCsv('danh-sach-thiet-bi', header, visible.map((d) => [
+      d.device_code, d.device_name, d.devicetype_name, d.location, d.management_ip,
+      d.total_tickets, d.open_tickets,
+      ...(isAdmin ? [d.false_alerts, d.total_alerts] : []),
+      fmtDateTime(d.last_event_at),
+    ]))
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-h1">Thiết bị</h1>
-        <p className="text-sm text-muted-foreground">Theo dõi lịch sử sự cố của từng thiết bị</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-h1">Thiết bị</h1>
+          <p className="text-sm text-muted-foreground">Theo dõi lịch sử sự cố của từng thiết bị</p>
+        </div>
+        <Button onClick={exportExcel} disabled={visible.length === 0}>
+          <Download className="mr-2 h-4 w-4" />Xuất Excel ({visible.length})
+        </Button>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
