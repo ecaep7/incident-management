@@ -13,10 +13,12 @@ import { SeverityTag, TaskResultTag } from '@/components/Tag'
 import { SlaBadge, getSlaState } from '@/components/SlaBadge'
 import { CheckCircle2, Clock, XCircle, AlertTriangle } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { uploadWithProgress } from '@/lib/uploadWithProgress'
 
 const SUBMIT_TASK_URL = 'https://wwpjuwuqhvpuujcymkzi.supabase.co/functions/v1/submit-task'
 const UPLOAD_ATTACHMENT_URL = 'https://wwpjuwuqhvpuujcymkzi.supabase.co/functions/v1/upload-attachment'
 
+const mb = (b: number) => (b / 1024 / 1024).toFixed(1).replace('.', ',')
 export default function MyTaskDetailPage() {
   const { loading: loadingProfile } = useProfile()
   const params = useParams()
@@ -29,6 +31,16 @@ export default function MyTaskDetailPage() {
   const [submitting, setSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [phase, setPhase] = useState<'idle' | 'uploading' | 'saving' | 'submitting'>('idle')
+  const [progress, setProgress] = useState({ percent: 0, loaded: 0, total: 0 })
+
+// Canh bao neu nguoi dung dong/tai lai trang khi dang nop
+useEffect(() => {
+  if (!submitting) return
+  const warn = (e: BeforeUnloadEvent) => e.preventDefault()
+  window.addEventListener('beforeunload', warn)
+  return () => window.removeEventListener('beforeunload', warn)
+}, [submitting])
 
   async function loadTask() {
     const { data } = await supabase
@@ -55,19 +67,21 @@ export default function MyTaskDetailPage() {
       formData.append('entity_type', 'TASK')
       formData.append('entity_id', taskId)
 
-      const uploadRes = await fetch(UPLOAD_ATTACHMENT_URL, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${session?.access_token}` },
-        body: formData,
+      setPhase('uploading')
+      setProgress({ percent: 0, loaded: 0, total: file.size })
+      const up = await uploadWithProgress(UPLOAD_ATTACHMENT_URL, formData, session?.access_token, (percent, loaded, total) => {
+        setProgress({ percent, loaded, total })
+        if (percent >= 100) setPhase('saving')
       })
-      if (!uploadRes.ok) {
-        const j = await uploadRes.json()
+      if (!up.ok) {
         setSubmitting(false)
-        setMessage('Lỗi upload file: ' + j.message)
+        setPhase('idle')
+        setMessage('Lỗi upload file: ' + (up.json.message ?? 'không xác định'))
         return
       }
     }
 
+    setPhase('submitting')
     const res = await fetch(SUBMIT_TASK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` },
@@ -75,6 +89,7 @@ export default function MyTaskDetailPage() {
     })
     const json = await res.json()
     setSubmitting(false)
+    setPhase('idle')
 
     if (!res.ok) { setMessage('Lỗi: ' + json.message); return }
     loadTask()
@@ -163,14 +178,38 @@ export default function MyTaskDetailPage() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={6}
+                    disabled={submitting}
                     placeholder="Nguyên nhân đã xác định, các bước đã thực hiện, kết quả sau xử lý..."
                   />
                   <p className="text-xs text-muted-foreground">{description.length} ký tự</p>
                 </div>
                 <div className="flex flex-col gap-2">
                   <Label>File đính kèm (không bắt buộc)</Label>
-                  <Input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+                  <Input type="file" disabled={submitting} onChange={(e) => setFile(e.target.files?.[0] || null)} />
                   <p className="text-xs text-muted-foreground">Ví dụ: ảnh chụp cấu hình, log sau xử lý, biên bản hiện trường.</p>
+                  {file && phase === 'idle' && (
+                  <p className="text-xs text-muted-foreground">Đã chọn: {file.name} ({mb(file.size)} MB)</p>
+                )}
+                {file && phase !== 'idle' && (
+                  <div className="flex flex-col gap-1.5" aria-live="polite">
+                    <div className="flex justify-between text-xs">
+                      <span className="font-medium">
+                        {phase === 'uploading' && 'Đang tải file lên…'}
+                        {phase === 'saving' && 'Đã tải xong, đang lưu file…'}
+                        {phase === 'submitting' && 'Đang nộp kết quả…'}
+                      </span>
+                      <span className="text-muted-foreground">
+                        {phase === 'uploading' ? `${progress.percent}% · ${mb(progress.loaded)}/${mb(progress.total)} MB` : '100%'}
+                      </span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-primary/10" role="progressbar"
+                      aria-valuemin={0} aria-valuemax={100} aria-valuenow={phase === 'uploading' ? progress.percent : 100}>
+                      <div className={`h-full rounded-full bg-primary transition-[width] duration-200 ${phase !== 'uploading' ? 'animate-pulse' : ''}`}
+                        style={{ width: `${phase === 'uploading' ? progress.percent : 100}%` }} />
+                    </div>
+                    <p className="text-xs text-muted-foreground">Vui lòng không đóng hoặc tải lại trang cho tới khi hoàn tất.</p>
+                  </div>
+                )}
                 </div>
                 {message && <p className="text-sm text-destructive">{message}</p>}
                 <Button
@@ -181,7 +220,7 @@ export default function MyTaskDetailPage() {
                   disabled={submitting}
                   className="self-start"
                 >
-                  {submitting ? 'Đang nộp...' : 'Nộp kết quả'}
+                  {submitting ? (phase === 'uploading' ? `Đang tải file ${progress.percent}%` : 'Đang nộp...') : 'Nộp kết quả'}
                 </Button>
               </div>
             )}

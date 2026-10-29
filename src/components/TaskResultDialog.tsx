@@ -154,7 +154,7 @@ function Meta({ icon: Icon, label, value, hint }: { icon: React.ElementType; lab
     <div className="flex gap-3">
       <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
       <div className="flex min-w-0 flex-col">
-        <dt className="text-[13px] font-semibold text-foreground">{label}</dt>
+        <dt className="text-[14px] font-semibold text-foreground">{label}</dt>
         <dd className="text-foreground/70">{value}</dd>
         {hint && <dd className="text-xs text-muted-foreground">{hint}</dd>}
       </div>
