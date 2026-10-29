@@ -129,7 +129,7 @@ export default function IncidentsPage() {
           <p className="ml-auto text-sm text-muted-foreground">
             {filteredIncidents.length} / {incidents.length} cảnh báo
           </p>
-          <Button variant="outline" onClick={exportExcel} disabled={filteredIncidents.length === 0}>
+          <Button onClick={exportExcel} disabled={filteredIncidents.length === 0}>
             <Download className="mr-2 h-4 w-4" />Xuất Excel
           </Button>
         </CardContent>

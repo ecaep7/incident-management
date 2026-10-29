@@ -87,7 +87,7 @@ export default function TicketsPage() {
           <h1 className="text-h1">Danh sách Ticket</h1>
           <p className="text-sm text-muted-foreground">Tự động cập nhật mỗi 15 giây</p>
         </div>
-        <Button variant="outline" onClick={exportExcel} disabled={filteredTickets.length === 0}>
+        <Button onClick={exportExcel} disabled={filteredTickets.length === 0}>
           <Download className="mr-2 h-4 w-4" />Xuất Excel ({filteredTickets.length})
         </Button>
       </div>
