@@ -149,7 +149,7 @@ export default function DevicesPage() {
                   <TableHead>Loại</TableHead>
                   <TableHead>Vị trí</TableHead>
                   <TableHead>IP quản lý</TableHead>
-                  <TableHead className="text-right">Sự cố</TableHead>
+                  <TableHead>Sự cố</TableHead>
                   <TableHead>Đang mở</TableHead>
                   {isAdmin && <TableHead className="text-center">Cảnh báo sai</TableHead>}
                   <TableHead>Sự cố gần nhất</TableHead>
@@ -171,7 +171,7 @@ export default function DevicesPage() {
                     <TableCell className="text-muted-foreground">{d.devicetype_name || '—'}</TableCell>
                     <TableCell className="text-muted-foreground">{d.location || '—'}</TableCell>
                     <TableCell className="text-muted-foreground">{d.management_ip}</TableCell>
-                    <TableCell className="text-right">{d.total_tickets}</TableCell>
+                    <TableCell className="text-center">{d.total_tickets}</TableCell>
                     <TableCell>
                       {Number(d.open_tickets) > 0
                         ? <Tag tone="red">{d.open_tickets} đang mở</Tag>

@@ -110,7 +110,7 @@ export default function IncidentCategoriesPage() {
                 <TableRow>
                   <TableHead>Loại sự cố</TableHead>
                   <TableHead>Mức ưu tiên</TableHead>
-                  <TableHead className="text-right">SLA (giờ)</TableHead>
+                  <TableHead>SLA (giờ)</TableHead>
                   <TableHead>Mô tả</TableHead>
                   <TableHead className="w-12" />
                 </TableRow>
@@ -120,8 +120,8 @@ export default function IncidentCategoriesPage() {
                   <TableRow key={c.category_id}>
                     <TableCell className="font-semibold">{c.category_name}</TableCell>
                     <TableCell><SeverityTag level={c.priority_level} /></TableCell>
-                    <TableCell className="text-right">{c.sla_hours}</TableCell>
-                    <TableCell className="max-w-md text-muted-foreground">{c.description || '—'}</TableCell>
+                    <TableCell>{c.sla_hours}</TableCell>
+                    <TableCell className="min-w-64 max-w-md whitespace-normal text-muted-foreground">{c.description || '—'}</TableCell>
                     <TableCell>
                       <Button variant="ghost" size="icon" title="Sửa loại sự cố" onClick={() => openForm(c)}>
                         <Pencil className="h-4 w-4" />
@@ -146,12 +146,12 @@ export default function IncidentCategoriesPage() {
         onSubmit={submit}
       >
         <div className="flex flex-col gap-2">
-          <Label>Tên loại sự cố *</Label>
+          <Label>Tên loại sự cố<span className="text-destructive">*</span></Label>
           <Input value={form.category_name} onChange={(e) => set('category_name')(e.target.value)} placeholder="VD: Tấn công DDoS" />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-2">
-            <Label>Mức ưu tiên *</Label>
+            <Label>Mức ưu tiên <span className="text-destructive">*</span></Label>
             <Select value={form.priority_level} onValueChange={(v) => set('priority_level')(String(v ?? 'MEDIUM'))}>
               <SelectTrigger className="w-full"><SelectValue>{form.priority_level}</SelectValue></SelectTrigger>
               <SelectContent>
@@ -160,7 +160,7 @@ export default function IncidentCategoriesPage() {
             </Select>
           </div>
           <div className="flex flex-col gap-2">
-            <Label>SLA (giờ) *</Label>
+            <Label>SLA (giờ) <span className="text-destructive">*</span></Label>
             <Input type="number" min={1} max={720} value={form.sla_hours} onChange={(e) => set('sla_hours')(e.target.value)} placeholder="VD: 24" />
           </div>
         </div>

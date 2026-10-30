@@ -26,8 +26,8 @@ export function FormDialog({
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0" />
         <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 flex max-h-[90dvh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col gap-4 overflow-y-auto rounded-[12px] bg-card p-6 shadow-xl ring-1 ring-foreground/10 transition-all duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0">
           <div className="flex flex-col gap-1">
-            <Dialog.Title className="text-h3">{title}</Dialog.Title>
-            {description && <Dialog.Description className="text-sm text-muted-foreground">{description}</Dialog.Description>}
+            <Dialog.Title className="text-lg font-bold">{title}</Dialog.Title>
+            {description && <Dialog.Description className="text-xs italic text-muted-foreground">{description}</Dialog.Description>}
           </div>
 
           <div className="flex flex-col gap-4">{children}</div>

@@ -107,11 +107,11 @@ export function DeviceFormDialog({
     >
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-2">
-          <Label>Mã thiết bị *</Label>
+          <Label>Mã thiết bị <span className="text-destructive">*</span></Label>
           <Input value={form.device_code} onChange={(e) => set('device_code')(e.target.value)} placeholder="VD: SW-HN-Core-02" />
         </div>
         <div className="flex flex-col gap-2">
-          <Label>IP quản lý *</Label>
+          <Label>IP quản lý <span className="text-destructive">*</span></Label>
           <Input
             value={form.management_ip}
             onChange={(e) => set('management_ip')(e.target.value)}
@@ -128,13 +128,13 @@ export function DeviceFormDialog({
       )}
 
       <div className="flex flex-col gap-2">
-        <Label>Tên thiết bị *</Label>
+        <Label>Tên thiết bị <span className="text-destructive">*</span></Label>
         <Input value={form.device_name} onChange={(e) => set('device_name')(e.target.value)} placeholder="VD: Switch lõi Hà Nội 02" />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-2">
-          <Label>Loại thiết bị *</Label>
+          <Label>Loại thiết bị <span className="text-destructive">*</span></Label>
           <Select value={form.devicetype_id} onValueChange={(v) => set('devicetype_id')(String(v ?? ''))}>
             <SelectTrigger className="w-full"><SelectValue placeholder="-- Chọn --">{typeName}</SelectValue></SelectTrigger>
             <SelectContent>
