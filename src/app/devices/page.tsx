@@ -10,7 +10,8 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Tag } from '@/components/Tag'
 import { StatCard } from '@/components/StatCard'
-import { Download } from 'lucide-react'
+import { Download, Pencil, Plus } from 'lucide-react'
+import { DeviceFormDialog } from '@/components/DeviceFormDialog'
 import { downloadCsv, fmtDateTime } from '@/lib/exportCsv'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -32,6 +33,11 @@ export default function DevicesPage() {
   const [error, setError] = useState('')
   const [keyword, setKeyword] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
+  // Form them / sua thiet bi (chi Admin): editingId = null la them moi
+  const [formOpen, setFormOpen] = useState(false)
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
+  const [formKey, setFormKey] = useState(0)
 
   useEffect(() => {
     if (!role) return
@@ -42,7 +48,13 @@ export default function DevicesPage() {
       setLoadingData(false)
     }
     load()
-  }, [role])
+  }, [role, reloadKey])
+
+  function openForm(id: number | null) {
+    setEditingId(id)
+    setFormKey((k) => k + 1)
+    setFormOpen(true)
+  }
 
   if (loadingProfile) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
   if (role !== 'Admin' && role !== 'Viewer') {
@@ -82,9 +94,16 @@ export default function DevicesPage() {
           <h1 className="text-h1">Thiết bị</h1>
           <p className="text-sm text-muted-foreground">Theo dõi lịch sử sự cố của từng thiết bị</p>
         </div>
-        <Button onClick={exportExcel} disabled={visible.length === 0}>
-          <Download className="mr-2 h-4 w-4" />Xuất Excel ({visible.length})
-        </Button>
+        <div className="flex gap-2">
+          {isAdmin && (
+            <Button onClick={() => openForm(null)}>
+              <Plus className="mr-2 h-4 w-4" />Thêm thiết bị
+            </Button>
+          )}
+          <Button onClick={exportExcel} disabled={visible.length === 0}>
+            <Download className="mr-2 h-4 w-4" />Xuất Excel ({visible.length})
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -134,6 +153,7 @@ export default function DevicesPage() {
                   <TableHead>Đang mở</TableHead>
                   {isAdmin && <TableHead className="text-center">Cảnh báo sai</TableHead>}
                   <TableHead>Sự cố gần nhất</TableHead>
+                  {isAdmin && <TableHead className="w-12" />}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -143,7 +163,10 @@ export default function DevicesPage() {
                       <Link href={`/devices/${d.device_id}`} className="font-semibold text-primary hover:underline">
                         {d.device_name || d.device_code}
                       </Link>
-                      <p className="text-xs text-muted-foreground">{d.device_code}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {d.device_code}
+                        {d.device_status === 'inactive' && <Tag tone="gray" className="ml-2 h-5 min-w-0">Ngừng sử dụng</Tag>}
+                      </p>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{d.devicetype_name || '—'}</TableCell>
                     <TableCell className="text-muted-foreground">{d.location || '—'}</TableCell>
@@ -162,6 +185,13 @@ export default function DevicesPage() {
                     <TableCell className="text-muted-foreground">
                       {d.last_event_at ? new Date(d.last_event_at).toLocaleString('vi-VN') : 'Chưa có'}
                     </TableCell>
+                    {isAdmin && (
+                      <TableCell>
+                        <Button variant="ghost" size="icon" title="Sửa thông tin thiết bị" onClick={() => openForm(d.device_id)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -169,6 +199,16 @@ export default function DevicesPage() {
           )}
         </CardContent>
       </Card>
+
+      {isAdmin && (
+        <DeviceFormDialog
+          key={formKey}
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          deviceId={editingId}
+          onSaved={() => setReloadKey((k) => k + 1)}
+        />
+      )}
     </div>
   )
 }
