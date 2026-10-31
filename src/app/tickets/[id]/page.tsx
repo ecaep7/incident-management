@@ -44,10 +44,13 @@ export default function TicketDetailPage() {
   const [openTaskId, setOpenTaskId] = useState<number | null>(null)
 
   async function loadAll() {
-    const { data: t } = await supabase.from('ticket').select('*').eq('ticket_id', ticketId).single()
+    // Tai song song ticket, cac nhiem vu va danh ba nguoi dung (truoc day tai lan luot tung cai)
+    const [{ data: t }, { data: tk }, { data: dir }] = await Promise.all([
+      supabase.from('ticket').select('*').eq('ticket_id', ticketId).single(),
+      supabase.from('ticket_task').select('*').eq('ticket_id', ticketId).order('created_at', { ascending: false }),
+      supabase.rpc('list_user_directory'),
+    ])
     setTicket(t)
-    const { data: tk } = await supabase.from('ticket_task').select('*').eq('ticket_id', ticketId).order('created_at', { ascending: false })
-    const { data: dir } = await supabase.rpc('list_user_directory')
     setDirectory(dir || [])
     const nameById = new Map((dir || []).map((u: any) => [u.user_id, u.full_name]))
     setTasks((tk || []).map((t: any) => ({ ...t, handler_full_name: nameById.get(t.handler_user_id) })))
