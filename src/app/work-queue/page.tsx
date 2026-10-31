@@ -20,18 +20,20 @@ export default function WorkQueuePage() {
 
   useEffect(() => {
     async function load() {
-      const { data: alerts } = await supabase
-        .from('incident_alert')
-        .select('incident_id, alert_summary, severity_level, device_ip, current_status, received_at')
-        .in('current_status', ['NEW', 'Verifying'])
-        .order('received_at', { ascending: false })
+      // Tai song song canh bao moi va ticket dang mo
+      const [{ data: alerts }, { data: tickets }] = await Promise.all([
+        supabase
+          .from('incident_alert')
+          .select('incident_id, alert_summary, severity_level, device_ip, current_status, received_at')
+          .in('current_status', ['NEW', 'Verifying'])
+          .order('received_at', { ascending: false }),
+        supabase
+          .from('ticket')
+          .select('ticket_id, ticket_code, status, sla_deadline, closed_at, created_at, incident_alert(alert_summary)')
+          .neq('status', 'Closed')
+          .order('sla_deadline', { ascending: true }),
+      ])
       setNewAlerts(alerts || [])
-
-      const { data: tickets } = await supabase
-        .from('ticket')
-        .select('ticket_id, ticket_code, status, sla_deadline, closed_at, created_at, incident_alert(alert_summary)')
-        .neq('status', 'Closed')
-        .order('sla_deadline', { ascending: true })
       setOpenTickets(tickets || [])
       setLoadingData(false)
     }

@@ -1,18 +1,28 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useProfile } from '@/lib/useProfile'
+import { ProfileProvider, useProfile } from '@/lib/useProfile'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/AppSidebar'
 import { Separator } from '@/components/ui/separator'
 
+// Bao ca ung dung trong ProfileProvider: thong tin nguoi dang nhap chi tai 1 lan, moi trang dung chung
 export function AppShell({ children }: { children: React.ReactNode }) {
+  return (
+    <ProfileProvider>
+      <ShellLayout>{children}</ShellLayout>
+    </ProfileProvider>
+  )
+}
+
+function ShellLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { profile, loading } = useProfile()
 
   // Trang dang nhap va trang ban in khong can sidebar
   if (pathname === '/login' || pathname.endsWith('/print')) return <>{children}</>
-  if (loading) return <div className="flex min-h-screen items-center justify-center">Đang tải...</div>
+  // Chua tai xong, hoac chua dang nhap (dang chuyen ve /login) -> chua ve sidebar
+  if (loading || !profile) return <div className="flex min-h-screen items-center justify-center">Đang tải...</div>
 
   return (
     <SidebarProvider>
