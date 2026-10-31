@@ -181,7 +181,9 @@ export default function IncidentDetailPage() {
               const files = attByVer.get(v.verification_id) || []
               return (
                 <div key={v.verification_id} className="rounded-md border p-3 text-sm">
-                  <p><span className="font-medium">Yêu cầu:</span> {v.request_note}</p>
+                  <p className="whitespace-pre-line text-muted-foreground">
+                    <span className="font-medium text-foreground">Yêu cầu:</span> {v.request_note}
+                  </p>
                   <p className="mt-1 whitespace-pre-line text-muted-foreground">
                     <span className="font-medium text-foreground">Trả lời:</span>{' '}
                     {v.response_payload || 'Chưa có phản hồi'}
