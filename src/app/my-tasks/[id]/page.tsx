@@ -14,6 +14,7 @@ import { SlaBadge, getSlaState } from '@/components/SlaBadge'
 import { CheckCircle2, Clock, XCircle, AlertTriangle } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { uploadWithProgress } from '@/lib/uploadWithProgress'
+import { TaskAttachments, type TaskAttachment } from '@/components/TaskAttachments'
 
 const SUBMIT_TASK_URL = 'https://wwpjuwuqhvpuujcymkzi.supabase.co/functions/v1/submit-task'
 const UPLOAD_ATTACHMENT_URL = 'https://wwpjuwuqhvpuujcymkzi.supabase.co/functions/v1/upload-attachment'
@@ -25,6 +26,7 @@ export default function MyTaskDetailPage() {
   const taskId = params.id as string
 
   const [task, setTask] = useState<any>(null)
+  const [attachments, setAttachments] = useState<TaskAttachment[]>([])
   const [description, setDescription] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [loadingData, setLoadingData] = useState(true)
@@ -43,11 +45,29 @@ useEffect(() => {
 }, [submitting])
 
   async function loadTask() {
-    const { data } = await supabase
-      .from('ticket_task')
-      .select('*, ticket(ticket_code, direction, status, sla_deadline, closed_at, created_at, incident_category(category_name, priority_level, sla_hours), department(dep_name), incident_alert(alert_summary, severity_level, device_ip, source_system, received_at, device(device_code, device_name, location)))')
-      .eq('task_id', taskId)
-      .single()
+    // Tai song song thong tin task va tep bang chung handler da nop kem
+    const [{ data }, { data: att }] = await Promise.all([
+      supabase
+        .from('ticket_task')
+        .select('*, ticket(ticket_code, direction, status, sla_deadline, closed_at, created_at, incident_category(category_name, priority_level, sla_hours), department(dep_name), incident_alert(alert_summary, severity_level, device_ip, source_system, received_at, device(device_code, device_name, location)))')
+        .eq('task_id', taskId)
+        .single(),
+      supabase
+        .from('attachment')
+        .select('attachment_id, entity_id, file_name, file_url, uploaded_at')
+        .eq('entity_type', 'TASK')
+        .eq('entity_id', taskId)
+        .order('uploaded_at', { ascending: true }),
+    ])
+    // Bucket 'attachments' rieng tu -> can signed URL de xem/tai
+    const rows = (att || []) as TaskAttachment[]
+    const paths = rows.map((a) => a.file_url).filter(Boolean)
+    const urlByPath = new Map<string, string>()
+    if (paths.length) {
+      const { data: signed } = await supabase.storage.from('attachments').createSignedUrls(paths, 60 * 60)
+      ;(signed || []).forEach((s) => { if (s.path && s.signedUrl && !s.error) urlByPath.set(s.path, s.signedUrl) })
+    }
+    setAttachments(rows.map((a) => ({ ...a, url: urlByPath.get(a.file_url) ?? null })))
     setTask(data)
     setLoadingData(false)
   }
@@ -169,6 +189,10 @@ useEffect(() => {
               <div className="flex flex-col gap-3 text-sm">
                 <p className="text-sm text-muted-foreground">Đã nộp lúc: {fmt(task.submitted_at)}</p>
                 <p className="whitespace-pre-wrap rounded-md bg-muted p-3">{task.handler_description}</p>
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">Tệp bằng chứng ({attachments.length})</span>
+                  <TaskAttachments items={attachments} />
+                </div>
               </div>
             ) : (
               <div className="flex flex-col gap-4">
