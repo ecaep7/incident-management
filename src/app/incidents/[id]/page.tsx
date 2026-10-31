@@ -11,6 +11,7 @@ import { SeverityTag, IncidentStatusTag } from '@/components/Tag'
 import { AiSuggestionCard } from '@/components/AiSuggestionCard'
 import { TextActionDialog } from '@/components/TextActionDialog'
 import { CreateTicketForm, AiPrefillNote } from '@/components/CreateTicketForm'
+import { TaskAttachments, type TaskAttachment } from '@/components/TaskAttachments'
 import { fetchLatestSuggestion, countFailedSuggestions, type AiSuggestion, type AiVerdict } from '@/lib/aiSuggestion'
 import { Ticket, SearchCheck, Ban, Sparkles } from 'lucide-react'
 
@@ -24,6 +25,7 @@ export default function IncidentDetailPage() {
 
   const [incident, setIncident] = useState<any>(null)
   const [verifications, setVerifications] = useState<any[]>([])
+  const [attByVer, setAttByVer] = useState<Map<number, TaskAttachment[]>>(new Map())
   const [loadingData, setLoadingData] = useState(true)
   const [note, setNote] = useState('')
   const [reason, setReason] = useState('')
@@ -44,7 +46,34 @@ export default function IncidentDetailPage() {
     ])
     setIncident(incidentData)
     setVerifications(verData || [])
+    await loadVerificationAttachments((verData || []).map((v: any) => v.verification_id))
     setLoadingData(false)
+  }
+
+  // Tep bang chung do he thong ben ngoai gui kem phan hoi xac minh (entity_type = 'VERIFICATION').
+  // Bucket 'attachments' rieng tu -> can signed URL de xem/tai.
+  async function loadVerificationAttachments(verIds: number[]) {
+    if (!verIds.length) { setAttByVer(new Map()); return }
+    const { data: att } = await supabase
+      .from('attachment')
+      .select('attachment_id, entity_id, file_name, file_url, uploaded_at')
+      .eq('entity_type', 'VERIFICATION')
+      .in('entity_id', verIds)
+      .order('uploaded_at', { ascending: true })
+    const rows = (att || []) as TaskAttachment[]
+    const paths = rows.map((a) => a.file_url).filter(Boolean)
+    const urlByPath = new Map<string, string>()
+    if (paths.length) {
+      const { data: signed } = await supabase.storage.from('attachments').createSignedUrls(paths, 60 * 60)
+      ;(signed || []).forEach((s) => { if (s.path && s.signedUrl && !s.error) urlByPath.set(s.path, s.signedUrl) })
+    }
+    const map = new Map<number, TaskAttachment[]>()
+    rows.forEach((a) => {
+      const list = map.get(a.entity_id) || []
+      list.push({ ...a, url: urlByPath.get(a.file_url) ?? null })
+      map.set(a.entity_id, list)
+    })
+    setAttByVer(map)
   }
 
   // Goi y AI (chi Admin doc duoc)
@@ -148,15 +177,29 @@ export default function IncidentDetailPage() {
           <CardContent className="flex flex-col gap-3">
             {verifications.length === 0 ? (
               <p className="text-sm text-muted-foreground">Chưa có yêu cầu nào.</p>
-            ) : verifications.map((v) => (
-              <div key={v.verification_id} className="rounded-md border p-3 text-sm">
-                <p><span className="font-medium">Yêu cầu:</span> {v.request_note}</p>
-                <p className="mt-1 text-muted-foreground">
-                  <span className="font-medium text-foreground">Trả lời:</span>{' '}
-                  {v.response_payload ? JSON.stringify(v.response_payload) : 'Chưa có phản hồi'}
-                </p>
-              </div>
-            ))}
+            ) : verifications.map((v) => {
+              const files = attByVer.get(v.verification_id) || []
+              return (
+                <div key={v.verification_id} className="rounded-md border p-3 text-sm">
+                  <p><span className="font-medium">Yêu cầu:</span> {v.request_note}</p>
+                  <p className="mt-1 whitespace-pre-line text-muted-foreground">
+                    <span className="font-medium text-foreground">Trả lời:</span>{' '}
+                    {v.response_payload || 'Chưa có phản hồi'}
+                  </p>
+                  {v.responded_at && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Phản hồi lúc {new Date(v.responded_at).toLocaleString('vi-VN')}
+                    </p>
+                  )}
+                  {files.length > 0 && (
+                    <div className="mt-3 flex flex-col gap-2">
+                      <span className="text-xs font-medium text-muted-foreground">Tệp đính kèm ({files.length})</span>
+                      <TaskAttachments items={files} />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </CardContent>
         </Card>
       </div>
