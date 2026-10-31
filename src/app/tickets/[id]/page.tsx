@@ -35,7 +35,7 @@ export default function TicketDetailPage() {
   const [reviewNotes, setReviewNotes] = useState('')
   const [reassignDirection, setReassignDirection] = useState('SYSTEM')
   const [departments, setDepartments] = useState<any[]>([])
-  const [handlers, setHandlers] = useState<any[]>([])
+  const [directory, setDirectory] = useState<any[]>([])   // danh ba nguoi dung, tai cung loadAll
   const [reassignDep, setReassignDep] = useState('')
   const [reassignHandler, setReassignHandler] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
@@ -48,6 +48,7 @@ export default function TicketDetailPage() {
     setTicket(t)
     const { data: tk } = await supabase.from('ticket_task').select('*').eq('ticket_id', ticketId).order('created_at', { ascending: false })
     const { data: dir } = await supabase.rpc('list_user_directory')
+    setDirectory(dir || [])
     const nameById = new Map((dir || []).map((u: any) => [u.user_id, u.full_name]))
     setTasks((tk || []).map((t: any) => ({ ...t, handler_full_name: nameById.get(t.handler_user_id) })))
     await loadAttachments((tk || []).map((t: any) => t.task_id))
@@ -89,19 +90,10 @@ export default function TicketDetailPage() {
     loadDeps()
   }, [])
 
-  useEffect(() => {
-    if (!reassignDep) { setHandlers([]); return }
-    async function loadHandlers() {
-      const { data } = await supabase.rpc('list_user_directory')
-      setHandlers(
-        (data || []).filter(
-          (u: any) => u.role_name === 'Handler' && String(u.dep_id) === String(reassignDep)
-        )
-      )
-      setReassignHandler('')
-    }
-    loadHandlers()
-  }, [reassignDep])
+  // Nguoi xu ly = Handler thuoc dung phong ban dang chon (loc tai cho, hien ngay khi doi phong ban)
+  const handlers = reassignDep
+    ? directory.filter((u: any) => u.role_name === 'Handler' && String(u.dep_id) === reassignDep)
+    : []
 
   async function callApi(url: string, body: any) {
     const { data: { session } } = await supabase.auth.getSession()
@@ -244,7 +236,7 @@ export default function TicketDetailPage() {
 
             <div className="flex flex-col gap-2">
               <Label>Phòng ban</Label>
-              <Select value={reassignDep} onValueChange={(v) => setReassignDep(v ?? '')}>
+              <Select value={reassignDep} onValueChange={(v) => { setReassignDep(v ?? ''); setReassignHandler('') }}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="-- Chọn phòng ban --">{selectedReassignDepName}</SelectValue>
                 </SelectTrigger>
@@ -258,9 +250,9 @@ export default function TicketDetailPage() {
 
             <div className="flex flex-col gap-2">
               <Label>Người xử lý</Label>
-              <Select value={reassignHandler} onValueChange={(v) => setReassignHandler(v ?? '')} disabled={!reassignDep}>
+              <Select value={reassignHandler} onValueChange={(v) => setReassignHandler(v ?? '')} disabled={!reassignDep || handlers.length === 0}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={reassignDep ? '-- Chọn người xử lý --' : 'Chọn phòng ban trước'}>
+                  <SelectValue placeholder={!reassignDep ? 'Chọn phòng ban trước' : handlers.length ? '-- Chọn người xử lý --' : 'Phòng ban chưa có người xử lý'}>
                     {selectedReassignHandlerName}
                   </SelectValue>
                 </SelectTrigger>

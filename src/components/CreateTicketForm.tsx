@@ -22,7 +22,7 @@ export function CreateTicketForm({ incidentId, confirm = true, onCreated, onAiLo
 }) {
   const [categories, setCategories] = useState<any[]>([])
   const [departments, setDepartments] = useState<any[]>([])
-  const [handlers, setHandlers] = useState<any[]>([])
+  const [directory, setDirectory] = useState<any[]>([])   // toan bo nguoi dung, tai 1 lan khi mo form
 
   const [categoryId, setCategoryId] = useState('')
   const [direction, setDirection] = useState('SYSTEM')
@@ -36,13 +36,19 @@ export function CreateTicketForm({ incidentId, confirm = true, onCreated, onAiLo
 
   useEffect(() => {
     async function loadMasterData() {
-      const { data: cats } = await supabase.from('incident_category').select('category_id, category_name, priority_level, sla_hours')
+      // Tai song song moi danh muc can cho form, ke ca danh ba nguoi dung, de khi chon phong ban
+      // thi danh sach nguoi xu ly loc ngay tai cho, khong phai cho goi mang lan nua.
+      const [{ data: cats }, { data: deps }, { data: dir }, sug] = await Promise.all([
+        supabase.from('incident_category').select('category_id, category_name, priority_level, sla_hours'),
+        supabase.from('department').select('dep_id, dep_name'),
+        supabase.rpc('list_user_directory'),
+        fetchLatestSuggestion(incidentId),
+      ])
       setCategories(cats || [])
-      const { data: deps } = await supabase.from('department').select('dep_id, dep_name')
       setDepartments(deps || [])
+      setDirectory(dir || [])
 
       // Dien san loai su co + huong xu ly theo goi y AI (chi khi AI ket luan la su co that). Admin van doi duoc.
-      const sug = await fetchLatestSuggestion(incidentId)
       const useful = sug?.verdict === 'TRUE_INCIDENT' ? sug : null
       setAi(useful)
       onAiLoaded?.(useful)
@@ -53,18 +59,10 @@ export function CreateTicketForm({ incidentId, confirm = true, onCreated, onAiLo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incidentId])
 
-  useEffect(() => {
-    if (!depId) { setHandlers([]); return }
-    async function loadHandlers() {
-      const { data } = await supabase.rpc('list_user_directory')
-      const onlyHandlers = (data || []).filter(
-        (u: any) => u.role_name === 'Handler' && String(u.dep_id) === String(depId)
-      )
-      setHandlers(onlyHandlers)
-      setHandlerId('')
-    }
-    loadHandlers()
-  }, [depId])
+  // Nguoi xu ly = Handler thuoc dung phong ban dang chon (loc tai cho, hien ngay khi doi phong ban)
+  const handlers = depId
+    ? directory.filter((u: any) => u.role_name === 'Handler' && String(u.dep_id) === depId)
+    : []
 
   async function handleSubmit() {
     if (!categoryId || !depId || !handlerId) { setMessage('Điền đủ cả 3 mục'); return }
@@ -129,7 +127,7 @@ export function CreateTicketForm({ incidentId, confirm = true, onCreated, onAiLo
 
       <div className="flex flex-col gap-2">
         <Label className="font-semibold">Phòng ban phụ trách</Label>
-        <Select value={depId} onValueChange={(v) => setDepId(v ?? '')}>
+        <Select value={depId} onValueChange={(v) => { setDepId(v ?? ''); setHandlerId('') }}>
           <SelectTrigger className="w-full font-light text-foreground/80">
             <SelectValue placeholder="-- Chọn --">
               {departments.find((d) => String(d.dep_id) === depId)?.dep_name}
@@ -145,9 +143,9 @@ export function CreateTicketForm({ incidentId, confirm = true, onCreated, onAiLo
 
       <div className="flex flex-col gap-2">
         <Label className="font-semibold">Người xử lý</Label>
-        <Select value={handlerId} onValueChange={(v) => setHandlerId(v ?? '')} disabled={!depId}>
+        <Select value={handlerId} onValueChange={(v) => setHandlerId(v ?? '')} disabled={!depId || handlers.length === 0}>
           <SelectTrigger className="w-full font-light text-foreground/80">
-            <SelectValue placeholder={depId ? '-- Chọn --' : 'Chọn phòng ban trước'}>
+            <SelectValue placeholder={!depId ? 'Chọn phòng ban trước' : handlers.length ? '-- Chọn --' : 'Phòng ban chưa có người xử lý'}>
               {handlers.find((h) => h.user_id === handlerId)?.full_name}
             </SelectValue>
           </SelectTrigger>
