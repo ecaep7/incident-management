@@ -23,7 +23,9 @@ export default function LoginPage() {
     setLoading(false)
 
     if (error) {
-      setError('Sai email hoặc mật khẩu')
+      // Tai khoan bi Admin vo hieu hoa -> Supabase Auth tra loi user_banned
+      const banned = error.code === 'user_banned' || /banned/i.test(error.message)
+      setError(banned ? 'Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.' : 'Sai email hoặc mật khẩu')
       return
     }
     window.location.href = '/dashboard'

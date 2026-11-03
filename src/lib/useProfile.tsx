@@ -35,10 +35,16 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       }
       const { data, error } = await supabase
         .from('user')
-        .select('user_id, full_name, email, role(role_name), department(dep_name, dep_id)')
+        .select('user_id, full_name, email, is_active, role(role_name), department(dep_name, dep_id)')
         .eq('user_id', user.id)
         .single()
       if (cancelled) return
+      // Tai khoan da bi Admin vo hieu hoa (fix20) -> dang xuat ngay, quay ve trang dang nhap
+      if (data && data.is_active === false) {
+        await supabase.auth.signOut()
+        if (!cancelled) setState({ profile: null, loading: false })
+        return
+      }
       setState({ profile: error ? null : data, loading: false })
     }
 

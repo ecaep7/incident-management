@@ -61,7 +61,7 @@ export function CreateTicketForm({ incidentId, confirm = true, onCreated, onAiLo
 
   // Nguoi xu ly = Handler thuoc dung phong ban dang chon (loc tai cho, hien ngay khi doi phong ban)
   const handlers = depId
-    ? directory.filter((u: any) => u.role_name === 'Handler' && String(u.dep_id) === depId)
+    ? directory.filter((u: any) => u.role_name === 'Handler' && String(u.dep_id) === depId && u.is_active !== false)
     : []
 
   async function handleSubmit() {
