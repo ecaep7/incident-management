@@ -17,6 +17,8 @@ import {
 // Khoa tai khoan qua ham set_user_active (fix20): chan dang nhap, dang xuat moi phien dang mo,
 // va my_role() tra ve NULL nen RLS chan moi truy cap du lieu. Thao tac duoc ghi vao audit_log.
 // Admin khong tu khoa duoc chinh minh (tranh mat quyen quan tri).
+// Chi khoa duoc khi nguoi do khong con dam nhan ticket chua dong (ham SQL kiem tra va bao loi
+// HAS_OPEN_TICKETS kem danh sach ma ticket; Admin can duyet / giao lai cac ticket do truoc).
 
 export default function UsersPage() {
   const { profile, loading: loadingProfile } = useProfile()
@@ -61,7 +63,8 @@ export default function UsersPage() {
     setSaveError('')
     const { error } = await supabase.rpc('set_user_active', { p_user_id: target.user_id, p_active: !isActive(target) })
     setSaving(false)
-    if (error) { setSaveError(`Không thực hiện được: ${error.message}`); return }
+    // Loi tu ham SQL co dang "MA_LOI: noi dung" -> chi hien phan noi dung tieng Viet
+    if (error) { setSaveError(error.message.replace(/^[A-Z_]+:\s*/, '')); return }
     setTarget(null)
     setReloadKey((k) => k + 1)
   }
@@ -110,7 +113,12 @@ export default function UsersPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         {!self && (
-                          <Button variant={isActive(u) ? 'outline' : 'secondary'} size="sm" onClick={() => openConfirm(u)}>
+                          <Button
+                            variant={isActive(u) ? 'outline' : 'secondary'}
+                            size="sm"
+                            className={isActive(u) ? 'hover:border-destructive hover:bg-destructive hover:text-white dark:hover:bg-destructive dark:hover:text-white' : ''}
+                            onClick={() => openConfirm(u)}
+                          >
                             {isActive(u) ? 'Vô hiệu hóa' : 'Kích hoạt lại'}
                           </Button>
                         )}
@@ -135,13 +143,13 @@ export default function UsersPage() {
       >
         <p className="text-sm">
           {deactivating ? (
-            <>Tài khoản <b>{target?.full_name}</b> ({target?.email}) sẽ bị đăng xuất ngay và không thể đăng nhập lại. Các ticket, nhiệm vụ và lịch sử do người này thực hiện vẫn được giữ nguyên.</>
+            <>Tài khoản <b>{target?.full_name}</b> ({target?.email}) sẽ bị đăng xuất ngay và không thể đăng nhập lại. Các ticket, nhiệm vụ và lịch sử do người này thực hiện trước đó vẫn được giữ nguyên.</>
           ) : (
             <>Tài khoản <b>{target?.full_name}</b> ({target?.email}) sẽ đăng nhập và sử dụng hệ thống trở lại với vai trò, phòng ban như trước.</>
           )}
         </p>
         {deactivating && target?.role?.role_name === 'Handler' && (
-          <p className="text-xs text-muted-foreground">Nhiệm vụ đang dang dở của người này cần được giao lại cho nhân sự khác trong trang chi tiết ticket.</p>
+          <p className="text-xs text-muted-foreground">Chỉ vô hiệu hóa được khi mọi ticket người này đảm nhận đã đóng, hoặc đã được đánh giá không đạt và giao lại cho người khác.</p>
         )}
       </FormDialog>
     </div>

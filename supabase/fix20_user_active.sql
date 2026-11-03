@@ -8,6 +8,8 @@
 --   2. Du lieu    : my_role() tra ve NULL voi tai khoan bi khoa -> moi chinh sach RLS va
 --                   ham nghiep vu tu chan, ke ca khi ma JWT cu chua het han (toi da ~1 gio).
 --   3. Phan cong  : khong giao duoc nhiem vu moi cho Handler da bi khoa.
+-- Dieu kien: chi khoa duoc khi nguoi do khong con dam nhan ticket nao chua dong, tuc la moi ticket
+-- ho tung nhan deu da dong, hoac da bi danh gia "khong dat" va giao lai cho nguoi khac.
 -- Thao tac duoc ghi vao audit_log qua trigger audit_user co san.
 --
 -- Chay toan bo file nay 1 lan trong Supabase > SQL Editor.
@@ -85,6 +87,9 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path TO 'public'
 AS $$
+DECLARE
+  v_open_count int;
+  v_open_codes text;
 BEGIN
   IF public.my_role() IS DISTINCT FROM 'Admin' THEN
     RAISE EXCEPTION 'NOT_AUTHORIZED: Chỉ Admin được thay đổi trạng thái tài khoản';
@@ -92,6 +97,28 @@ BEGIN
 
   IF p_user_id = auth.uid() THEN
     RAISE EXCEPTION 'CANNOT_DEACTIVATE_SELF: Không thể tự thay đổi trạng thái tài khoản của chính mình';
+  END IF;
+
+  -- Chi khoa khi khong con ticket chua dong ma nguoi nay la nguoi xu ly cua nhiem vu moi nhat
+  -- (nhiem vu moi nhat cua ticket = nguoi dang chiu trach nhiem; neu da bi danh gia khong dat
+  --  va Admin da giao lai thi nhiem vu moi nhat thuoc ve nguoi khac)
+  IF NOT p_active THEN
+    SELECT count(*), string_agg(COALESCE(t.ticket_code, '#' || t.ticket_id), ', ' ORDER BY t.ticket_id)
+    INTO v_open_count, v_open_codes
+    FROM ticket t
+    JOIN LATERAL (
+      SELECT tt.handler_user_id
+      FROM ticket_task tt
+      WHERE tt.ticket_id = t.ticket_id
+      ORDER BY tt.created_at DESC, tt.task_id DESC
+      LIMIT 1
+    ) latest ON true
+    WHERE t.status IS DISTINCT FROM 'Closed'
+      AND latest.handler_user_id = p_user_id;
+
+    IF v_open_count > 0 THEN
+      RAISE EXCEPTION 'HAS_OPEN_TICKETS: Người dùng còn % ticket chưa đóng (%). Cần duyệt kết quả hoặc giao lại cho người khác trước khi vô hiệu hóa', v_open_count, v_open_codes;
+    END IF;
   END IF;
 
   UPDATE public."user" SET is_active = p_active WHERE user_id = p_user_id;
@@ -116,6 +143,14 @@ GRANT EXECUTE ON FUNCTION public.set_user_active(uuid, boolean) TO authenticated
 
 -- ============================================================
 -- KIEM TRA NHANH (dang chu thich, chay rieng tung cau):
+-- Ticket chua dong ma moi Handler dang dam nhan (nguoi co so > 0 thi chua khoa duoc):
+-- SELECT u.full_name, count(*) AS ticket_chua_dong
+-- FROM ticket t
+-- JOIN LATERAL (SELECT handler_user_id FROM ticket_task WHERE ticket_id = t.ticket_id
+--               ORDER BY created_at DESC, task_id DESC LIMIT 1) lt ON true
+-- JOIN public."user" u ON u.user_id = lt.handler_user_id
+-- WHERE t.status IS DISTINCT FROM 'Closed' GROUP BY u.full_name;
+--
 -- SELECT u.full_name, u.is_active, a.banned_until
 -- FROM public."user" u JOIN auth.users a ON a.id = u.user_id ORDER BY u.full_name;
 --
