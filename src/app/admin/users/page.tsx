@@ -30,16 +30,19 @@ import {
 // Bo dau tieng Viet de go "nguyen" van tim ra "Nguyễn"
 const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase()
 
+// Giu lai danh sach da tai trong bo nho cua trinh duyet: quay lai trang thi hien ngay ban cu,
+// dong thoi tai ban moi o nen roi cap nhat (khong phai nhin "Dang tai..." moi lan vao trang).
+let usersCache: any[] | null = null
+
 const STATUS_LABEL: Record<string, string> = { all: 'Tất cả', active: 'Đang hoạt động', inactive: 'Đã vô hiệu hóa' }
 
 export default function UsersPage() {
   const { profile, loading: loadingProfile } = useProfile()
   const role = profile?.role?.role_name
 
-  const [rows, setRows] = useState<any[]>([])
-  const [loadingData, setLoadingData] = useState(true)
+  const [rows, setRows] = useState<any[]>(usersCache ?? [])
+  const [loadingData, setLoadingData] = useState(usersCache === null)
   const [loadError, setLoadError] = useState('')
-  const [reloadKey, setReloadKey] = useState(0)
 
   const [target, setTarget] = useState<any | null>(null)
   const [saving, setSaving] = useState(false)
@@ -58,10 +61,10 @@ export default function UsersPage() {
       .order('full_name')
       .then(({ data, error }) => {
         if (error) setLoadError(error.message)
-        else setRows(data || [])
+        else { usersCache = data || []; setRows(usersCache) }
         setLoadingData(false)
       })
-  }, [role, reloadKey])
+  }, [role])
 
   if (loadingProfile) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
   if (role !== 'Admin') return <div className="p-10 text-muted-foreground">Trang này chỉ dành cho Admin.</div>
@@ -115,8 +118,11 @@ export default function UsersPage() {
     setSaving(false)
     // Loi tu ham SQL co dang "MA_LOI: noi dung" -> chi hien phan noi dung tieng Viet
     if (error) { setSaveError(error.message.replace(/^[A-Z_]+:\s*/, '')); return }
+    // Cap nhat ngay dong vua doi trang thai thay vi tai lai ca danh sach
+    const updated = rows.map((u) => (u.user_id === target.user_id ? { ...u, is_active: !isActive(target) } : u))
+    usersCache = updated
+    setRows(updated)
     setTarget(null)
-    setReloadKey((k) => k + 1)
   }
 
   return (
