@@ -10,7 +10,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tag } from '@/components/Tag'
 import { FormDialog } from '@/components/FormDialog'
-import { UserPlus } from 'lucide-react'
+import { Download, UserPlus } from 'lucide-react'
+import { downloadCsv } from '@/lib/exportCsv'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
@@ -82,6 +83,18 @@ export default function UsersPage() {
     return true
   })
 
+  // Xuat danh sach DANG HIEN THI (da ap bo loc) ra file mo duoc bang Excel
+  function exportExcel() {
+    downloadCsv(
+      'danh-sach-nguoi-dung',
+      ['Mã nhân viên', 'Họ tên', 'Email', 'Vai trò', 'Phòng ban', 'Trạng thái'],
+      filteredRows.map((u) => [
+        u.user_code || '', u.full_name || '', u.email || '', u.role?.role_name || '', u.department?.dep_name || '',
+        isActive(u) ? 'Đang hoạt động' : 'Đã vô hiệu hóa',
+      ]),
+    )
+  }
+
   function clearFilters() {
     setKeyword('')
     setRoleFilter('all')
@@ -113,9 +126,14 @@ export default function UsersPage() {
           <h1 className="text-h1">Người dùng</h1>
           <p className="text-sm text-muted-foreground">Danh sách tài khoản; vô hiệu hóa tài khoản khi nhân sự không còn tham gia xử lý sự cố</p>
         </div>
-        <Link href="/admin/create-user">
-          <Button><UserPlus className="mr-2 h-4 w-4" />Tạo tài khoản</Button>
-        </Link>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={exportExcel} disabled={filteredRows.length === 0}>
+            <Download className="mr-2 h-4 w-4" />Xuất Excel ({filteredRows.length})
+          </Button>
+          <Link href="/admin/create-user">
+            <Button><UserPlus className="mr-2 h-4 w-4" />Tạo tài khoản</Button>
+          </Link>
+        </div>
       </div>
 
       <Card size="sm">
