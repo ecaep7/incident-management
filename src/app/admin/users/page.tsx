@@ -116,7 +116,9 @@ export default function UsersPage() {
                           <Button
                             variant={isActive(u) ? 'outline' : 'secondary'}
                             size="sm"
-                            className={isActive(u) ? 'hover:border-destructive hover:bg-destructive hover:text-white dark:hover:bg-destructive dark:hover:text-white' : ''}
+                            className={isActive(u)
+                              ? 'hover:border-destructive hover:bg-destructive hover:text-white dark:hover:bg-destructive dark:hover:text-white'
+                              : 'hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white'}
                             onClick={() => openConfirm(u)}
                           >
                             {isActive(u) ? 'Vô hiệu hóa' : 'Kích hoạt lại'}
