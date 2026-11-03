@@ -95,7 +95,7 @@ export default function TicketDetailPage() {
 
   // Nguoi xu ly = Handler thuoc dung phong ban dang chon (loc tai cho, hien ngay khi doi phong ban)
   const handlers = reassignDep
-    ? directory.filter((u: any) => u.role_name === 'Handler' && String(u.dep_id) === reassignDep)
+    ? directory.filter((u: any) => u.role_name === 'Handler' && String(u.dep_id) === reassignDep && u.is_active !== false)
     : []
 
   async function callApi(url: string, body: any) {

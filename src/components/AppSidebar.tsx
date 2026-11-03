@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ModeToggle } from '@/components/mode-toggle'
 import { supabase } from '@/lib/supabase'
-import { LayoutDashboard, AlertTriangle, Ticket, UserPlus, ClipboardList, ChevronUp, KeyRound, LogOut, Inbox, Server, Tags, History } from 'lucide-react'
+import { LayoutDashboard, AlertTriangle, Ticket, UserPlus, ClipboardList, ChevronUp, KeyRound, LogOut, Inbox, Server, Tags, History, Users } from 'lucide-react'
 
 export function AppSidebar({ profile }: { profile: any }) {
   const pathname = usePathname()
@@ -30,6 +30,7 @@ export function AppSidebar({ profile }: { profile: any }) {
     { href: '/tickets', label: 'Ticket', icon: Ticket, show: role === 'Admin' || role === 'Viewer' },
     { href: '/devices', label: 'Thiết bị', icon: Server, show: role === 'Admin' || role === 'Viewer' },
     { href: '/my-tasks', label: 'Việc của tôi', icon: ClipboardList, show: role === 'Handler' },
+    { href: '/admin/users', label: 'Người dùng', icon: Users, show: role === 'Admin' },
     { href: '/admin/create-user', label: 'Tạo tài khoản', icon: UserPlus, show: role === 'Admin' },
     { href: '/admin/incident-categories', label: 'Loại sự cố', icon: Tags, show: role === 'Admin' },
     { href: '/admin/audit-log', label: 'Nhật ký hệ thống', icon: History, show: role === 'Admin' },
