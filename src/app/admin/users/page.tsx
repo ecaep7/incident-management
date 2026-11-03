@@ -6,12 +6,17 @@ import { useProfile } from '@/lib/useProfile'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Tag } from '@/components/Tag'
 import { FormDialog } from '@/components/FormDialog'
 import { UserPlus } from 'lucide-react'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
 
 // Danh sach nguoi dung (chi Admin): xem tai khoan, vo hieu hoa / kich hoat lai.
 // Khoa tai khoan qua ham set_user_active (fix20): chan dang nhap, dang xuat moi phien dang mo,
@@ -19,6 +24,12 @@ import {
 // Admin khong tu khoa duoc chinh minh (tranh mat quyen quan tri).
 // Chi khoa duoc khi nguoi do khong con dam nhan ticket chua dong (ham SQL kiem tra va bao loi
 // HAS_OPEN_TICKETS kem danh sach ma ticket; Admin can duyet / giao lai cac ticket do truoc).
+// Bo loc (vai tro, phong ban, trang thai, tu khoa) loc ngay tren danh sach da tai, khong goi mang lai.
+
+// Bo dau tieng Viet de go "nguyen" van tim ra "Nguyễn"
+const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase()
+
+const STATUS_LABEL: Record<string, string> = { all: 'Tất cả', active: 'Đang hoạt động', inactive: 'Đã vô hiệu hóa' }
 
 export default function UsersPage() {
   const { profile, loading: loadingProfile } = useProfile()
@@ -32,6 +43,11 @@ export default function UsersPage() {
   const [target, setTarget] = useState<any | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+
+  const [keyword, setKeyword] = useState('')
+  const [roleFilter, setRoleFilter] = useState('all')
+  const [depFilter, setDepFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
 
   useEffect(() => {
     if (role !== 'Admin') return
@@ -51,6 +67,27 @@ export default function UsersPage() {
 
   const isActive = (u: any) => u.is_active !== false
   const deactivating = target ? isActive(target) : false
+
+  // Danh sach lua chon lay tu chinh du lieu dang co
+  const roleOptions = [...new Set(rows.map((u) => u.role?.role_name).filter(Boolean))].sort() as string[]
+  const depOptions = [...new Set(rows.map((u) => u.department?.dep_name).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi')) as string[]
+
+  const kw = normalize(keyword.trim())
+  const filteredRows = rows.filter((u) => {
+    if (roleFilter !== 'all' && u.role?.role_name !== roleFilter) return false
+    if (depFilter !== 'all' && u.department?.dep_name !== depFilter) return false
+    if (statusFilter === 'active' && !isActive(u)) return false
+    if (statusFilter === 'inactive' && isActive(u)) return false
+    if (kw && !normalize([u.full_name, u.email, u.user_code].filter(Boolean).join(' ')).includes(kw)) return false
+    return true
+  })
+
+  function clearFilters() {
+    setKeyword('')
+    setRoleFilter('all')
+    setDepFilter('all')
+    setStatusFilter('all')
+  }
 
   function openConfirm(u: any) {
     setSaveError('')
@@ -81,12 +118,66 @@ export default function UsersPage() {
         </Link>
       </div>
 
+      <Card size="sm">
+        <CardContent className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-col gap-2">
+            <Label>Tìm kiếm</Label>
+            <Input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="Họ tên, email, mã nhân viên..." className="w-64" />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>Vai trò</Label>
+            <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v ?? 'all')}>
+              <SelectTrigger className="w-36">
+                <SelectValue>{roleFilter === 'all' ? 'Tất cả' : roleFilter}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                {roleOptions.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>Phòng ban</Label>
+            <Select value={depFilter} onValueChange={(v) => setDepFilter(v ?? 'all')}>
+              <SelectTrigger className="w-52">
+                <SelectValue>{depFilter === 'all' ? 'Tất cả' : depFilter}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                {depOptions.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>Trạng thái</Label>
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? 'all')}>
+              <SelectTrigger className="w-44">
+                <SelectValue>{STATUS_LABEL[statusFilter]}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="active">Đang hoạt động</SelectItem>
+                <SelectItem value="inactive">Đã vô hiệu hóa</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button onClick={clearFilters}>Xóa bộ lọc</Button>
+          <span className="ml-auto self-center text-sm text-muted-foreground">{filteredRows.length}/{rows.length} người dùng</span>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardContent className="p-0">
           {loadingData ? (
             <p className="p-6 text-muted-foreground">Đang tải...</p>
           ) : loadError ? (
             <p className="p-6 text-destructive">Không tải được danh sách người dùng: {loadError}</p>
+          ) : filteredRows.length === 0 ? (
+            <p className="p-6 text-muted-foreground">Không có người dùng nào khớp với bộ lọc.</p>
           ) : (
             <Table>
               <TableHeader>
@@ -100,7 +191,7 @@ export default function UsersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((u) => {
+                {filteredRows.map((u) => {
                   const self = u.user_id === profile?.user_id
                   return (
                     <TableRow key={u.user_id} className={isActive(u) ? '' : 'opacity-60'}>
