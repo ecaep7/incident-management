@@ -13,6 +13,8 @@ import { StatCard } from '@/components/StatCard'
 import { Download, Pencil, Plus } from 'lucide-react'
 import { DeviceFormDialog } from '@/components/DeviceFormDialog'
 import { downloadCsv, fmtDateTime } from '@/lib/exportCsv'
+import { useTableView } from '@/lib/useTableView'
+import { SortableHead, TablePagination } from '@/components/TableControls'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -56,11 +58,6 @@ export default function DevicesPage() {
     setFormOpen(true)
   }
 
-  if (loadingProfile) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
-  if (role !== 'Admin' && role !== 'Viewer') {
-    return <div className="p-10 text-muted-foreground">Trang này dành cho Admin và Viewer.</div>
-  }
-
   const types = [...new Set(devices.map((d) => d.devicetype_name).filter(Boolean))]
   const kw = keyword.trim().toLowerCase()
   const visible = devices.filter((d) => {
@@ -68,6 +65,17 @@ export default function DevicesPage() {
     if (kw && !`${d.device_code} ${d.device_name} ${d.management_ip} ${d.location || ''}`.toLowerCase().includes(kw)) return false
     return true
   })
+
+  // Sap xep theo thoi diem su co gan nhat (bam vao tieu de cot) + phan trang
+  const view = useTableView(visible, {
+    sortFields: { last_event_at: (d) => d.last_event_at },
+    resetKey: `${kw}|${typeFilter}`,
+  })
+
+  if (loadingProfile) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
+  if (role !== 'Admin' && role !== 'Viewer') {
+    return <div className="p-10 text-muted-foreground">Trang này dành cho Admin và Viewer.</div>
+  }
 
   const totalTickets = devices.reduce((n, d) => n + Number(d.total_tickets || 0), 0)
   const openTickets = devices.reduce((n, d) => n + Number(d.open_tickets || 0), 0)
@@ -79,7 +87,7 @@ export default function DevicesPage() {
     const header = ['Mã thiết bị', 'Tên thiết bị', 'Loại', 'Vị trí', 'IP quản lý', 'Tổng sự cố', 'Ticket đang mở']
     if (isAdmin) header.push('Cảnh báo sai', 'Tổng cảnh báo')
     header.push('Sự cố gần nhất')
-    downloadCsv('danh-sach-thiet-bi', header, visible.map((d) => [
+    downloadCsv('danh-sach-thiet-bi', header, view.sorted.map((d) => [
       d.device_code, d.device_name, d.devicetype_name, d.location, d.management_ip,
       d.total_tickets, d.open_tickets,
       ...(isAdmin ? [d.false_alerts, d.total_alerts] : []),
@@ -142,7 +150,8 @@ export default function DevicesPage() {
           ) : visible.length === 0 ? (
             <p className="p-6 text-muted-foreground">Không có thiết bị nào khớp.</p>
           ) : (
-            <Table maxHeight="max-h-[max(320px,calc(100dvh-28rem))]">
+            <>
+            <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Thiết bị</TableHead>
@@ -152,12 +161,12 @@ export default function DevicesPage() {
                   <TableHead>Sự cố</TableHead>
                   <TableHead>Đang mở</TableHead>
                   {isAdmin && <TableHead className="text-center">Cảnh báo sai</TableHead>}
-                  <TableHead>Sự cố gần nhất</TableHead>
+                  <SortableHead label="Sự cố gần nhất" field="last_event_at" sortKey={view.sortKey} sortDir={view.sortDir} onSort={view.toggleSort} />
                   {isAdmin && <TableHead className="w-12" />}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {visible.map((d) => (
+                {view.rows.map((d) => (
                   <TableRow key={d.device_id}>
                     <TableCell>
                       <Link href={`/devices/${d.device_id}`} className="font-semibold text-primary hover:underline">
@@ -196,6 +205,8 @@ export default function DevicesPage() {
                 ))}
               </TableBody>
             </Table>
+            <TablePagination {...view} unit="thiết bị" />
+            </>
           )}
         </CardContent>
       </Card>

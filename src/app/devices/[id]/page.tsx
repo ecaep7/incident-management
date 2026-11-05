@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SeverityTag, IncidentStatusTag, TicketStatusTag, Tag } from '@/components/Tag'
 import { SlaBadge } from '@/components/SlaBadge'
 import { StatCard } from '@/components/StatCard'
+import { useTableView } from '@/lib/useTableView'
+import { SortableHead, TablePagination } from '@/components/TableControls'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
@@ -44,6 +46,12 @@ export default function DeviceDetailPage() {
     }
     load()
   }, [role, deviceId])
+
+  // Lich su su co: sap xep theo thoi gian (mac dinh moi nhat truoc) + phan trang
+  const view = useTableView(history, {
+    sortFields: { received_at: (h) => h.received_at },
+    defaultSort: { key: 'received_at', dir: 'desc' },
+  })
 
   if (loadingProfile || (loadingData && !error)) {
     return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
@@ -110,10 +118,11 @@ export default function DeviceDetailPage() {
           {history.length === 0 ? (
             <p className="p-6 text-muted-foreground">Thiết bị này chưa có sự cố nào.</p>
           ) : (
-            <Table maxHeight="max-h-[60vh]">
+            <>
+            <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Thời gian</TableHead>
+                  <SortableHead label="Thời gian" field="received_at" sortKey={view.sortKey} sortDir={view.sortDir} onSort={view.toggleSort} />
                   <TableHead>Mức độ</TableHead>
                   <TableHead>Nội dung</TableHead>
                   <TableHead>Ticket</TableHead>
@@ -124,7 +133,7 @@ export default function DeviceDetailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {history.map((h) => (
+                {view.rows.map((h) => (
                   <TableRow key={h.incident_id}>
                     <TableCell className="whitespace-nowrap text-muted-foreground">{fmt(h.received_at)}</TableCell>
                     <TableCell><SeverityTag level={h.severity_level} /></TableCell>
@@ -153,6 +162,8 @@ export default function DeviceDetailPage() {
                 ))}
               </TableBody>
             </Table>
+            <TablePagination {...view} unit="sự cố" />
+            </>
           )}
         </CardContent>
       </Card>

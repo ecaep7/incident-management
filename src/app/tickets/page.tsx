@@ -12,6 +12,8 @@ import { TicketStatusTag } from '@/components/Tag'
 import { SlaBadge, slaLabel } from '@/components/SlaBadge'
 import { Download } from 'lucide-react'
 import { downloadCsv, fmtDateTime } from '@/lib/exportCsv'
+import { useTableView } from '@/lib/useTableView'
+import { SortableHead, TablePagination } from '@/components/TableControls'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -44,8 +46,6 @@ export default function TicketsPage() {
     return () => clearInterval(interval)
   }, [])
 
-  if (loadingProfile) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
-
   const kw = keyword.trim().toLowerCase()
   const filteredTickets = tickets.filter((t) => {
     if (kw && !`${t.ticket_code} ${t.incident_alert?.alert_summary || ''}`.toLowerCase().includes(kw)) return false
@@ -60,6 +60,15 @@ export default function TicketsPage() {
     return true
   })
 
+  // Sap xep theo thoi gian tao / han SLA (mac dinh: moi tao truoc) + phan trang
+  const view = useTableView(filteredTickets, {
+    sortFields: { created_at: (t) => t.created_at, sla_deadline: (t) => t.sla_deadline },
+    defaultSort: { key: 'created_at', dir: 'desc' },
+    resetKey: `${kw}|${statusFilter}|${directionFilter}|${dateFrom}|${dateTo}`,
+  })
+
+  if (loadingProfile) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
+
   function clearFilters() {
     setStatusFilter('all')
     setDirectionFilter('all')
@@ -73,7 +82,7 @@ export default function TicketsPage() {
     downloadCsv(
       'danh-sach-ticket',
       ['Mã ticket', 'Sự cố', 'Trạng thái', 'Hướng xử lý', 'Thời gian tạo', 'Hạn SLA', 'Thời gian đóng', 'Tình trạng SLA'],
-      filteredTickets.map((t) => [
+      view.sorted.map((t) => [
         t.ticket_code, t.incident_alert?.alert_summary || '', t.status, t.direction,
         fmtDateTime(t.created_at), fmtDateTime(t.sla_deadline), fmtDateTime(t.closed_at), slaLabel(t),
       ]),
@@ -151,20 +160,21 @@ export default function TicketsPage() {
           ) : filteredTickets.length === 0 ? (
             <p className="p-6 text-muted-foreground">Không có ticket nào khớp bộ lọc.</p>
           ) : (
-            <Table maxHeight="max-h-[max(320px,calc(100dvh-22rem))]">
+            <>
+            <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Mã ticket</TableHead>
                   <TableHead>Sự cố</TableHead>
-                  <TableHead>Thời gian tạo</TableHead>
+                  <SortableHead label="Thời gian tạo" field="created_at" sortKey={view.sortKey} sortDir={view.sortDir} onSort={view.toggleSort} />
                   <TableHead>Trạng thái</TableHead>
                   <TableHead>Hướng xử lý</TableHead>
-                  <TableHead>Hạn SLA</TableHead>
+                  <SortableHead label="Hạn SLA" field="sla_deadline" sortKey={view.sortKey} sortDir={view.sortDir} onSort={view.toggleSort} />
                   <TableHead>SLA</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredTickets.map((t) => (
+                {view.rows.map((t) => (
                   <TableRow key={t.ticket_id}>
                     <TableCell>
                       <Link href={`/tickets/${t.ticket_id}`} className="font-semibold text-primary hover:underline">
@@ -189,6 +199,8 @@ export default function TicketsPage() {
                 ))}
               </TableBody>
             </Table>
+            <TablePagination {...view} unit="ticket" />
+            </>
           )}
         </CardContent>
       </Card>
