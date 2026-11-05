@@ -31,7 +31,10 @@ const adminConfig = {
 
 // Bang mau phan biet cac nguon (gan theo thu tu, nguon nhieu su co nhat mang mau dau tien)
 const SOURCE_COLORS = ['#005BAA', '#C9701C', '#16A34A', '#7C3AED', '#0891B2', '#DB2777', '#64748B']
-const colorAt = (i: number) => SOURCE_COLORS[i % SOURCE_COLORS.length]
+const OTHER = 'Khác'
+const colorOf = (name: string, i: number) => (name === OTHER ? '#94A3B8' : SOURCE_COLORS[i % SOURCE_COLORS.length])
+// Bieu do tron chi tach rieng 5 nguon nhieu su co nhat, cac nguon con lai gop vao "Khac"
+const TOP_N = 5
 
 // Chuyen ngay 'YYYY-MM-DD' (gio dia phuong) sang moc thoi gian, giong cach loc cua dashboard
 const startOf = (d: string) => (d ? new Date(d + 'T00:00:00').toISOString() : null)
@@ -71,7 +74,15 @@ export function AlertSourceCard({ role, filter }: {
   // Do day cot co gian theo so nguon: it nguon thi cot day hon, khong de trong qua nhieu
   const barSize = Math.max(18, Math.min(48, Math.floor(160 / Math.max(rows.length, 1)) - 8))
   const viewerTotal = rows.reduce((n, r) => n + r.ticket_alerts, 0)
-  const pieConfig = Object.fromEntries(rows.map((r, i) => [r.source_system, { label: r.source_system, color: colorAt(i) }])) satisfies ChartConfig
+  const sortedRows = [...rows].sort((a, b) => b.ticket_alerts - a.ticket_alerts)
+  const pieRows = sortedRows.length > TOP_N
+    ? [
+        ...sortedRows.slice(0, TOP_N),
+        { source_system: OTHER, total_alerts: null, false_alerts: null, pending_alerts: null,
+          ticket_alerts: sortedRows.slice(TOP_N).reduce((n, r) => n + r.ticket_alerts, 0) },
+      ]
+    : sortedRows
+  const pieConfig = Object.fromEntries(pieRows.map((r, i) => [r.source_system, { label: r.source_system, color: colorOf(r.source_system, i) }])) satisfies ChartConfig
 
   return (
     <Card>
@@ -123,14 +134,14 @@ export function AlertSourceCard({ role, filter }: {
                       </div>
                     )} />}
                 />
-                <Pie data={rows.map((r, i) => ({ ...r, fill: colorAt(i) }))} dataKey="ticket_alerts" nameKey="source_system"
+                <Pie data={pieRows.map((r, i) => ({ ...r, fill: colorOf(r.source_system, i) }))} dataKey="ticket_alerts" nameKey="source_system"
                   outerRadius={150} strokeWidth={2}>
-                  {rows.map((r, i) => <Cell key={r.source_system} fill={colorAt(i)} />)}
+                  {pieRows.map((r, i) => <Cell key={r.source_system} fill={colorOf(r.source_system, i)} />)}
                 </Pie>
               </PieChart>
             </ChartContainer>
             <div className="flex flex-col gap-2.5 text-xs text-muted-foreground">
-              {rows.map((r, i) => <Legend key={r.source_system} color={colorAt(i)} label={r.source_system} />)}
+              {pieRows.map((r, i) => <Legend key={r.source_system} color={colorOf(r.source_system, i)} label={r.source_system} />)}
             </div>
           </div>
         )}
