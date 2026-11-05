@@ -298,7 +298,7 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
                     ))}
                   </BarChart>
                 </ChartContainer>
-                <div className="mt-2 flex flex-wrap gap-3">
+                <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
                   {PRIO_KEYS.map((p) => <LegendDot key={p} color={severityColor(p)} label={p} />)}
                 </div>
               </>

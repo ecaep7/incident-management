@@ -15,6 +15,7 @@ import {
 import { computeKpis, filterTickets, pctChange, previousRange, trendSeries } from '@/lib/dashboardStats'
 import { downloadCsv } from '@/lib/exportCsv'
 import { KpiCard, type OpsTicket } from '@/components/dashboard/OpsDashboard'
+import { AlertSourceCard } from '@/components/dashboard/AlertSourceCard'
 
 // Dashboard "bao cao" danh cho Viewer (lanh dao / giam sat, chi xem).
 // Chi DOC du lieu ticket theo quyen cua Viewer, moi so lieu tinh o giao dien.
@@ -277,7 +278,8 @@ export function ReportDashboard({ tickets, categories, departments, filter, filt
         </CardContent>
       </Card>
 
-      {/* Theo loai su co */}
+      {/* Theo loai su co + Su co theo nguon phat hien (dat canh nhau) */}
+      <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
       <Card>
         <CardHeader><CardTitle>Theo loại sự cố</CardTitle></CardHeader>
         <CardContent>
@@ -309,6 +311,8 @@ export function ReportDashboard({ tickets, categories, departments, filter, filt
           </div>
         </CardContent>
       </Card>
+      <AlertSourceCard role="Viewer" filter={filter} />
+      </div>
     </div>
   )
 }

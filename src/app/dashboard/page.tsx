@@ -11,7 +11,6 @@ import {
 import { Inbox, AlertTriangle, Ticket, RotateCcw, ClipboardList } from 'lucide-react'
 import { OpsDashboard, type OpsTicket } from '@/components/dashboard/OpsDashboard'
 import { ReportDashboard } from '@/components/dashboard/ReportDashboard'
-import { AlertSourceCard } from '@/components/dashboard/AlertSourceCard'
 import { HandlerDashboard, useHandlerStats, type HandlerTask } from '@/components/dashboard/HandlerDashboard'
 
 function greeting() {
@@ -169,10 +168,7 @@ export default function DashboardPage() {
         <>
           {role === 'Viewer' ? (
             // Viewer (lanh dao / giam sat): dashboard dang bao cao
-            <>
             <ReportDashboard tickets={tickets} categories={categories} departments={departments} filter={filter} filterControls={filterControls} />
-            <AlertSourceCard role="Viewer" filter={filter} />
-            </>
           ) : (
           <>
           <div className="flex flex-wrap items-center gap-2">{filterControls}</div>

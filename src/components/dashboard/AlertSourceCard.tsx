@@ -5,13 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent,
 } from '@/components/ui/chart'
-import { BarChart, Bar, XAxis, YAxis, LabelList } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell } from 'recharts'
 import { supabase } from '@/lib/supabase'
 
 // Thong ke canh bao theo nguon gui (ham get_alert_source_stats - fix21).
 // Ham tu gioi han du lieu theo vai tro:
 //   - Admin : moi nguon -> thanh ticket / canh bao sai / dang cho (bieu do cot chong)
-//   - Viewer: chi so su co (canh bao da thanh ticket) theo nguon
+//   - Viewer: chi so su co (canh bao da thanh ticket) theo nguon (bieu do tron, moi nguon mot mau)
 // Ap dung bo loc thoi gian (theo thoi diem tiep nhan canh bao); khong ap dung loc phong ban
 // vi canh bao chua duoc giao cho phong ban nao truoc khi thanh ticket.
 
@@ -29,9 +29,9 @@ const adminConfig = {
   pending_alerts: { label: 'Đang chờ xử lý', color: 'var(--status-pending)' },
 } satisfies ChartConfig
 
-const viewerConfig = {
-  ticket_alerts: { label: 'Số sự cố', color: 'var(--series-1)' },
-} satisfies ChartConfig
+// Bang mau phan biet cac nguon (gan theo thu tu, nguon nhieu su co nhat mang mau dau tien)
+const SOURCE_COLORS = ['#005BAA', '#C9701C', '#16A34A', '#7C3AED', '#0891B2', '#DB2777', '#64748B']
+const colorAt = (i: number) => SOURCE_COLORS[i % SOURCE_COLORS.length]
 
 // Chuyen ngay 'YYYY-MM-DD' (gio dia phuong) sang moc thoi gian, giong cach loc cua dashboard
 const startOf = (d: string) => (d ? new Date(d + 'T00:00:00').toISOString() : null)
@@ -68,7 +68,10 @@ export function AlertSourceCard({ role, filter }: {
   }, [filter.from, filter.to])
 
   const isAdmin = role === 'Admin'
-  const chartHeight = Math.max(120, rows.length * 44)
+  // Do day cot co gian theo so nguon: it nguon thi cot day hon, khong de trong qua nhieu
+  const barSize = Math.max(18, Math.min(48, Math.floor(160 / Math.max(rows.length, 1)) - 8))
+  const viewerTotal = rows.reduce((n, r) => n + r.ticket_alerts, 0)
+  const pieConfig = Object.fromEntries(rows.map((r, i) => [r.source_system, { label: r.source_system, color: colorAt(i) }])) satisfies ChartConfig
 
   return (
     <Card>
@@ -95,9 +98,9 @@ export function AlertSourceCard({ role, filter }: {
                 <XAxis type="number" hide allowDecimals={false} />
                 <YAxis dataKey="source_system" type="category" tickLine={false} axisLine={false} width={120} fontSize={11} />
                 <ChartTooltip cursor={{ fill: 'var(--surface-soft)' }} content={<ChartTooltipContent />} />
-                <Bar dataKey="ticket_alerts" stackId="a" fill="var(--color-ticket_alerts)" maxBarSize={22} />
-                <Bar dataKey="false_alerts" stackId="a" fill="var(--color-false_alerts)" maxBarSize={22} />
-                <Bar dataKey="pending_alerts" stackId="a" fill="var(--color-pending_alerts)" radius={[0, 4, 4, 0]} maxBarSize={22} />
+                <Bar dataKey="ticket_alerts" stackId="a" fill="var(--color-ticket_alerts)" barSize={barSize} />
+                <Bar dataKey="false_alerts" stackId="a" fill="var(--color-false_alerts)" barSize={barSize} />
+                <Bar dataKey="pending_alerts" stackId="a" fill="var(--color-pending_alerts)" radius={[0, 4, 4, 0]} barSize={barSize} />
               </BarChart>
             </ChartContainer>
             <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
@@ -105,16 +108,28 @@ export function AlertSourceCard({ role, filter }: {
             </div>
           </>
         ) : (
-          <ChartContainer config={viewerConfig} className="w-full" style={{ height: chartHeight }}>
-            <BarChart data={rows} layout="vertical" margin={{ left: 0, right: 32 }}>
-              <XAxis type="number" hide allowDecimals={false} />
-              <YAxis dataKey="source_system" type="category" tickLine={false} axisLine={false} width={160} fontSize={14} />
-              <ChartTooltip cursor={{ fill: 'var(--surface-soft)' }} content={<ChartTooltipContent />} />
-              <Bar dataKey="ticket_alerts" fill="var(--color-ticket_alerts)" radius={4} maxBarSize={22}>
-                <LabelList dataKey="ticket_alerts" position="right" fontSize={12} className="fill-foreground" />
-              </Bar>
-            </BarChart>
-          </ChartContainer>
+          <div className="flex flex-col items-center gap-4 sm:flex-row">
+            <ChartContainer config={pieConfig} className="aspect-square h-[240px] shrink-0">
+              <PieChart>
+                <ChartTooltip content={<ChartTooltipContent hideLabel nameKey="source_system" />} />
+                <Pie data={rows} dataKey="ticket_alerts" nameKey="source_system" outerRadius={100} strokeWidth={2}>
+                  {rows.map((r, i) => <Cell key={r.source_system} fill={colorAt(i)} />)}
+                </Pie>
+              </PieChart>
+            </ChartContainer>
+            <ul className="flex w-full flex-col gap-2 text-sm">
+              {rows.map((r, i) => (
+                <li key={r.source_system} className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: colorAt(i) }} />
+                  <span className="truncate" title={r.source_system}>{r.source_system}</span>
+                  <span className="ml-auto font-[650]">{r.ticket_alerts}</span>
+                  <span className="w-12 text-right text-muted-foreground">
+                    {viewerTotal ? Math.round((100 * r.ticket_alerts) / viewerTotal) : 0}%
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </CardContent>
     </Card>
