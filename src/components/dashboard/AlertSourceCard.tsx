@@ -108,8 +108,8 @@ export function AlertSourceCard({ role, filter }: {
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center">
-            <ChartContainer config={pieConfig} className="aspect-square h-[280px]">
+          <div className="flex flex-col items-center justify-center gap-6 sm:flex-row">
+            <ChartContainer config={pieConfig} className="aspect-square h-[320px] shrink-0">
               <PieChart>
                 <ChartTooltip
                   content={<ChartTooltipContent hideLabel nameKey="source_system"
@@ -124,12 +124,12 @@ export function AlertSourceCard({ role, filter }: {
                     )} />}
                 />
                 <Pie data={rows.map((r, i) => ({ ...r, fill: colorAt(i) }))} dataKey="ticket_alerts" nameKey="source_system"
-                  outerRadius={120} strokeWidth={2}>
+                  outerRadius={150} strokeWidth={2}>
                   {rows.map((r, i) => <Cell key={r.source_system} fill={colorAt(i)} />)}
                 </Pie>
               </PieChart>
             </ChartContainer>
-            <div className="mt-2 flex flex-wrap justify-center gap-3 text-xs text-muted-foreground">
+            <div className="flex flex-col gap-2.5 text-xs text-muted-foreground">
               {rows.map((r, i) => <Legend key={r.source_system} color={colorAt(i)} label={r.source_system} />)}
             </div>
           </div>
