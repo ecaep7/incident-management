@@ -231,6 +231,42 @@ export function ReportDashboard({ tickets, categories, departments, filter, filt
         </Card>
       </div>
 
+      {/* Theo loai su co + Su co theo nguon phat hien (dat canh nhau) */}
+      <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
+      <Card>
+        <CardHeader><CardTitle>Theo loại sự cố</CardTitle></CardHeader>
+        <CardContent>
+          {catRows.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Không có ticket trong kỳ này.</p>
+          ) : (
+            <ChartContainer config={{ total: { label: 'Số ticket' } }} className="w-full" style={{ height: Math.max(120, catChart.length * 40) }}>
+              <BarChart data={catChart} layout="vertical" margin={{ left: 0, right: 32 }}>
+                <XAxis type="number" hide allowDecimals={false} />
+                <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={180} fontSize={14} />
+                <ChartTooltip cursor={{ fill: 'var(--surface-soft)' }} content={<ChartTooltipContent hideLabel nameKey="name"
+                  formatter={(value, _n, item) => (
+                    <div className="flex w-full items-center gap-2 whitespace-nowrap">
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: severityColor(item.payload.prio) }} />
+                      <span className="text-muted-foreground">{item.payload.prio === 'OTHER' ? item.payload.name : `${item.payload.name} · ${PRIO_LABEL[item.payload.prio] || item.payload.prio}`}</span>
+                      <span className="ml-auto pl-3 font-[650] text-foreground">{value} ticket</span>
+                    </div>
+                  )} />} />
+                <Bar dataKey="total" radius={4} maxBarSize={22}>
+                  {catChart.map((c) => <CellFill key={c.name} fill={severityColor(c.prio)} />)}
+                  <LabelList dataKey="total" position="right" fontSize={12} className="fill-foreground" />
+                </Bar>
+              </BarChart>
+            </ChartContainer>
+          )}
+          <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
+            {PRIO_ORDER.map((p) => <Legend key={p} color={severityColor(p)} label={PRIO_LABEL[p]} />)}
+            {catChart.length < catRows.length && <Legend color={severityColor('OTHER')} label="Khác" />}
+          </div>
+        </CardContent>
+      </Card>
+      <AlertSourceCard role="Viewer" filter={filter} />
+      </div>
+
       {/* So sanh phong ban */}
       <Card>
         <CardHeader><CardTitle>So sánh các phòng ban</CardTitle></CardHeader>
@@ -277,42 +313,6 @@ export function ReportDashboard({ tickets, categories, departments, filter, filt
           </Table>
         </CardContent>
       </Card>
-
-      {/* Theo loai su co + Su co theo nguon phat hien (dat canh nhau) */}
-      <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
-      <Card>
-        <CardHeader><CardTitle>Theo loại sự cố</CardTitle></CardHeader>
-        <CardContent>
-          {catRows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Không có ticket trong kỳ này.</p>
-          ) : (
-            <ChartContainer config={{ total: { label: 'Số ticket' } }} className="w-full" style={{ height: Math.max(120, catChart.length * 40) }}>
-              <BarChart data={catChart} layout="vertical" margin={{ left: 0, right: 32 }}>
-                <XAxis type="number" hide allowDecimals={false} />
-                <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={180} fontSize={14} />
-                <ChartTooltip cursor={{ fill: 'var(--surface-soft)' }} content={<ChartTooltipContent hideLabel nameKey="name"
-                  formatter={(value, _n, item) => (
-                    <div className="flex w-full items-center gap-2 whitespace-nowrap">
-                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: severityColor(item.payload.prio) }} />
-                      <span className="text-muted-foreground">{item.payload.prio === 'OTHER' ? item.payload.name : `${item.payload.name} · ${PRIO_LABEL[item.payload.prio] || item.payload.prio}`}</span>
-                      <span className="ml-auto pl-3 font-[650] text-foreground">{value} ticket</span>
-                    </div>
-                  )} />} />
-                <Bar dataKey="total" radius={4} maxBarSize={22}>
-                  {catChart.map((c) => <CellFill key={c.name} fill={severityColor(c.prio)} />)}
-                  <LabelList dataKey="total" position="right" fontSize={12} className="fill-foreground" />
-                </Bar>
-              </BarChart>
-            </ChartContainer>
-          )}
-          <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
-            {PRIO_ORDER.map((p) => <Legend key={p} color={severityColor(p)} label={PRIO_LABEL[p]} />)}
-            {catChart.length < catRows.length && <Legend color={severityColor('OTHER')} label="Khác" />}
-          </div>
-        </CardContent>
-      </Card>
-      <AlertSourceCard role="Viewer" filter={filter} />
-      </div>
     </div>
   )
 }
