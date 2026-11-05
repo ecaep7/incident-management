@@ -6,14 +6,11 @@ import {
   ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent,
 } from '@/components/ui/chart'
 import { BarChart, Bar, XAxis, YAxis, LabelList } from 'recharts'
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table'
 import { supabase } from '@/lib/supabase'
 
 // Thong ke canh bao theo nguon gui (ham get_alert_source_stats - fix21).
 // Ham tu gioi han du lieu theo vai tro:
-//   - Admin : moi nguon -> thanh ticket / canh bao sai / dang cho, kem bang ty le canh bao sai
+//   - Admin : moi nguon -> thanh ticket / canh bao sai / dang cho (bieu do cot chong)
 //   - Viewer: chi so su co (canh bao da thanh ticket) theo nguon
 // Ap dung bo loc thoi gian (theo thoi diem tiep nhan canh bao); khong ap dung loc phong ban
 // vi canh bao chua duoc giao cho phong ban nao truoc khi thanh ticket.
@@ -72,7 +69,6 @@ export function AlertSourceCard({ role, filter }: {
 
   const isAdmin = role === 'Admin'
   const chartHeight = Math.max(120, rows.length * 44)
-  const falseRate = (r: Row) => (r.total_alerts ? Math.round((100 * (r.false_alerts ?? 0)) / r.total_alerts) : 0)
 
   return (
     <Card>
@@ -80,7 +76,7 @@ export function AlertSourceCard({ role, filter }: {
         <CardTitle>{isAdmin ? 'Cảnh báo theo nguồn gửi' : 'Sự cố theo nguồn phát hiện'}</CardTitle>
         <p className="text-xs text-muted-foreground">
           {isAdmin
-            ? 'Số cảnh báo mỗi hệ thống nguồn gửi tới, chia theo kết quả xử lý'
+            ? 'Số cảnh báo theo hệ thống nguồn, chia theo kết quả xử lý'
             : 'Số sự cố đã xác nhận thành ticket, theo hệ thống nguồn phát hiện'}
           {filter.depId !== 'all' && ' · Không áp dụng bộ lọc phòng ban'}
         </p>
@@ -93,41 +89,21 @@ export function AlertSourceCard({ role, filter }: {
         ) : rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">Không có dữ liệu trong kỳ này.</p>
         ) : isAdmin ? (
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-            <div className="xl:col-span-2">
-              <ChartContainer config={adminConfig} className="w-full" style={{ height: chartHeight }}>
-                <BarChart data={rows} layout="vertical" margin={{ left: 0, right: 16 }}>
-                  <XAxis type="number" hide allowDecimals={false} />
-                  <YAxis dataKey="source_system" type="category" tickLine={false} axisLine={false} width={140} fontSize={13} />
-                  <ChartTooltip cursor={{ fill: 'var(--surface-soft)' }} content={<ChartTooltipContent />} />
-                  <Bar dataKey="ticket_alerts" stackId="a" fill="var(--color-ticket_alerts)" maxBarSize={22} />
-                  <Bar dataKey="false_alerts" stackId="a" fill="var(--color-false_alerts)" maxBarSize={22} />
-                  <Bar dataKey="pending_alerts" stackId="a" fill="var(--color-pending_alerts)" radius={[0, 4, 4, 0]} maxBarSize={22} />
-                </BarChart>
-              </ChartContainer>
-              <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
-                {Object.entries(adminConfig).map(([k, v]) => <Legend key={k} color={v.color} label={v.label} />)}
-              </div>
+          <>
+            <ChartContainer config={adminConfig} className="h-[220px] w-full">
+              <BarChart data={rows} layout="vertical" margin={{ left: 0, right: 8 }}>
+                <XAxis type="number" hide allowDecimals={false} />
+                <YAxis dataKey="source_system" type="category" tickLine={false} axisLine={false} width={120} fontSize={11} />
+                <ChartTooltip cursor={{ fill: 'var(--surface-soft)' }} content={<ChartTooltipContent />} />
+                <Bar dataKey="ticket_alerts" stackId="a" fill="var(--color-ticket_alerts)" maxBarSize={22} />
+                <Bar dataKey="false_alerts" stackId="a" fill="var(--color-false_alerts)" maxBarSize={22} />
+                <Bar dataKey="pending_alerts" stackId="a" fill="var(--color-pending_alerts)" radius={[0, 4, 4, 0]} maxBarSize={22} />
+              </BarChart>
+            </ChartContainer>
+            <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
+              {Object.entries(adminConfig).map(([k, v]) => <Legend key={k} color={v.color} label={v.label} />)}
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nguồn</TableHead>
-                  <TableHead className="text-right">Cảnh báo</TableHead>
-                  <TableHead className="text-right">Tỷ lệ sai</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.source_system}>
-                    <TableCell className="max-w-[160px] truncate font-medium" title={r.source_system}>{r.source_system}</TableCell>
-                    <TableCell className="text-right">{r.total_alerts}</TableCell>
-                    <TableCell className="text-right text-muted-foreground">{falseRate(r)}%</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          </>
         ) : (
           <ChartContainer config={viewerConfig} className="w-full" style={{ height: chartHeight }}>
             <BarChart data={rows} layout="vertical" margin={{ left: 0, right: 32 }}>

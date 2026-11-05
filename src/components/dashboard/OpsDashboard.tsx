@@ -8,13 +8,14 @@ import {
 } from '@/components/ui/chart'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, RadialBarChart, RadialBar, PolarAngleAxis,
-  BarChart, Bar, Cell,
+  BarChart, Bar,
 } from 'recharts'
 import {
   AlertTriangle, Timer, ShieldCheck, Clock, Inbox, Ticket, Server, ArrowUpRight,
   CheckCircle2, Bot, TrendingUp, TrendingDown,
 } from 'lucide-react'
 import { severityColor } from '@/components/StatusDot'
+import { AlertSourceCard } from '@/components/dashboard/AlertSourceCard'
 import { TicketStatusTag } from '@/components/Tag'
 import { SlaBadge } from '@/components/SlaBadge'
 import {
@@ -50,7 +51,26 @@ const trendConfig = {
   created: { label: 'Tạo mới', color: 'var(--series-1)' },
   closed: { label: 'Đã đóng', color: 'var(--series-2)' },
 } satisfies ChartConfig
-const countConfig = { total: { label: 'Số ticket' } } satisfies ChartConfig
+const PRIO_KEYS = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] as const
+const depPrioConfig = Object.fromEntries(PRIO_KEYS.map((p) => [p, { label: p, color: severityColor(p) }])) satisfies ChartConfig
+
+// Nhan truc X xuong dong theo tu, de ten phong ban dai khong bi de len nhau
+function WrapTick({ x = 0, y = 0, payload }: { x?: number; y?: number; payload?: { value: string } }) {
+  const words = String(payload?.value ?? '').split(' ')
+  const lines: string[] = []
+  words.forEach((w) => {
+    const last = lines[lines.length - 1]
+    if (last && (last + ' ' + w).length <= 14) lines[lines.length - 1] = last + ' ' + w
+    else lines.push(w)
+  })
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text textAnchor="middle" fontSize={11} className="fill-muted-foreground">
+        {lines.slice(0, 3).map((l, i) => <tspan key={i} x={0} dy={i === 0 ? 10 : 12}>{l}</tspan>)}
+      </text>
+    </g>
+  )
+}
 const statusConfig = { value: { label: 'Tỷ lệ' } } satisfies ChartConfig
 
 function fmtHours(h: number | null) {
@@ -103,6 +123,21 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
         : new Date(a.sla_deadline).getTime() - new Date(b.sla_deadline).getTime(),
     )
   const catName = new Map(categories.map((c) => [c.category_id, c.category_name || '']))
+
+  // Ticket theo phong ban, chia theo muc do uu tien (bieu do cot chong)
+  const prioOf = new Map(categories.map((c) => [c.category_id, c.priority_level]))
+  const depPrio = [...departments]
+    .sort((x, y) => x.dep_id - y.dep_id)
+    .map((d) => {
+      const row: Record<string, string | number> = { dep_name: d.dep_name }
+      PRIO_KEYS.forEach((p) => { row[p] = 0 })
+      inPeriod.filter((t) => t.assigned_dep_id === d.dep_id).forEach((t) => {
+        const p = prioOf.get(t.category_id)
+        if (p && p in row) row[p] = (row[p] as number) + 1
+      })
+      return row
+    })
+    .filter((r) => PRIO_KEYS.some((p) => (r[p] as number) > 0))
 
   return (
     <div className="flex flex-col gap-4">
@@ -245,38 +280,33 @@ export function OpsDashboard({ role, tickets, categories, departments, handlerBy
       {/* Phan tich chi tiet */}
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
         <Card>
-          <CardHeader><CardTitle>Ticket theo mức độ</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Ticket theo phòng ban và mức độ</CardTitle></CardHeader>
           <CardContent>
-            <ChartContainer config={countConfig} className="h-[180px] w-full">
-              <BarChart data={stats.byPriority} layout="vertical" margin={{ left: 0 }}>
-                <CartesianGrid horizontal={false} />
-                <XAxis type="number" hide allowDecimals={false} />
-                <YAxis dataKey="priority_level" type="category" tickLine={false} axisLine={false} width={72} fontSize={11} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="total" radius={4}>
-                  {stats.byPriority.map((e) => <Cell key={e.priority_level} fill={severityColor(e.priority_level)} />)}
-                </Bar>
-              </BarChart>
-            </ChartContainer>
+            {depPrio.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Không có ticket trong kỳ này.</p>
+            ) : (
+              <>
+                <ChartContainer config={depPrioConfig} className="h-[220px] w-full">
+                  <BarChart data={depPrio} margin={{ left: 0, right: 0, top: 4 }}>
+                    <CartesianGrid vertical={false} />
+                    <XAxis dataKey="dep_name" tickLine={false} axisLine={false} interval={0} height={44} tick={<WrapTick />} />
+                    <YAxis allowDecimals={false} tickLine={false} axisLine={false} width={24} fontSize={11} />
+                    <ChartTooltip cursor={{ fill: 'var(--surface-soft)' }} content={<ChartTooltipContent />} />
+                    {[...PRIO_KEYS].reverse().map((p, i) => (
+                      <Bar key={p} dataKey={p} stackId="prio" fill={severityColor(p)} maxBarSize={36}
+                        radius={i === PRIO_KEYS.length - 1 ? [4, 4, 0, 0] : 0} />
+                    ))}
+                  </BarChart>
+                </ChartContainer>
+                <div className="mt-2 flex flex-wrap gap-3">
+                  {PRIO_KEYS.map((p) => <LegendDot key={p} color={severityColor(p)} label={p} />)}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader><CardTitle>Ticket theo phòng ban</CardTitle></CardHeader>
-          <CardContent>
-            <ChartContainer config={countConfig} className="h-[180px] w-full">
-              <BarChart data={stats.byDept} layout="vertical" margin={{ left: 0 }}>
-                <CartesianGrid horizontal={false} />
-                <XAxis type="number" hide allowDecimals={false} />
-                <YAxis dataKey="dep_name" type="category" tickLine={false} axisLine={false} width={120} fontSize={11} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="total" radius={4}>
-                  {stats.byDept.map((e) => <Cell key={e.dep_name} fill={colorOfDep(e.dep_name)} />)}
-                </Bar>
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
+        <AlertSourceCard role={role} filter={filter} />
 
         <Card>
           <CardHeader><CardTitle>Hiệu suất theo phòng ban</CardTitle></CardHeader>

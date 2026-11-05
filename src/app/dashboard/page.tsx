@@ -186,7 +186,6 @@ export default function DashboardPage() {
             pendingAlerts={pendingAlerts}
             filter={filter}
           />
-          <AlertSourceCard role="Admin" filter={filter} />
           </>
           )}
         </>
