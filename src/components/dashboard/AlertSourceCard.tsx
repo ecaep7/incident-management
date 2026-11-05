@@ -108,27 +108,30 @@ export function AlertSourceCard({ role, filter }: {
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center gap-4 sm:flex-row">
-            <ChartContainer config={pieConfig} className="aspect-square h-[240px] shrink-0">
+          <div className="flex flex-col items-center">
+            <ChartContainer config={pieConfig} className="aspect-square h-[280px]">
               <PieChart>
-                <ChartTooltip content={<ChartTooltipContent hideLabel nameKey="source_system" />} />
-                <Pie data={rows} dataKey="ticket_alerts" nameKey="source_system" outerRadius={100} strokeWidth={2}>
+                <ChartTooltip
+                  content={<ChartTooltipContent hideLabel nameKey="source_system"
+                    formatter={(value, _n, item) => (
+                      <div className="flex items-center gap-2 whitespace-nowrap">
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: item.payload.fill }} />
+                        <span className="text-muted-foreground">{item.payload.source_system}:</span>
+                        <span className="font-[650] text-foreground">
+                          {value} sự cố ({viewerTotal ? Math.round((100 * Number(value)) / viewerTotal) : 0}%)
+                        </span>
+                      </div>
+                    )} />}
+                />
+                <Pie data={rows.map((r, i) => ({ ...r, fill: colorAt(i) }))} dataKey="ticket_alerts" nameKey="source_system"
+                  outerRadius={120} strokeWidth={2}>
                   {rows.map((r, i) => <Cell key={r.source_system} fill={colorAt(i)} />)}
                 </Pie>
               </PieChart>
             </ChartContainer>
-            <ul className="flex w-full flex-col gap-2 text-sm">
-              {rows.map((r, i) => (
-                <li key={r.source_system} className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: colorAt(i) }} />
-                  <span className="truncate" title={r.source_system}>{r.source_system}</span>
-                  <span className="ml-auto font-[650]">{r.ticket_alerts}</span>
-                  <span className="w-12 text-right text-muted-foreground">
-                    {viewerTotal ? Math.round((100 * r.ticket_alerts) / viewerTotal) : 0}%
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-2 flex flex-wrap justify-center gap-3 text-xs text-muted-foreground">
+              {rows.map((r, i) => <Legend key={r.source_system} color={colorAt(i)} label={r.source_system} />)}
+            </div>
           </div>
         )}
       </CardContent>
