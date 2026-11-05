@@ -11,6 +11,8 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Download } from 'lucide-react'
 import { downloadCsv, fmtDateTime } from '@/lib/exportCsv'
+import { useTableView } from '@/lib/useTableView'
+import { SortableHead, TablePagination } from '@/components/TableControls'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -56,6 +58,13 @@ export default function IncidentsPage() {
     return true
   })
 
+  // Sap xep theo thoi gian tiep nhan (mac dinh moi nhat truoc) + phan trang
+  const view = useTableView(filteredIncidents, {
+    sortFields: { received_at: (i) => i.received_at },
+    defaultSort: { key: 'received_at', dir: 'desc' },
+    resetKey: `${kw}|${severityFilter}|${statusFilter}`,
+  })
+
   function clearFilters() {
     setKeyword('')
     setSeverityFilter('all')
@@ -66,7 +75,7 @@ export default function IncidentsPage() {
     downloadCsv(
       'hang-cho-canh-bao',
       ['Mã cảnh báo', 'Mức độ', 'Nội dung', 'IP thiết bị', 'Trạng thái', 'Thời gian tiếp nhận'],
-      filteredIncidents.map((i) => [
+      view.sorted.map((i) => [
         i.incident_id, i.severity_level, i.alert_summary, i.device_ip,
         STATUS_LABEL[i.current_status] || i.current_status, fmtDateTime(i.received_at),
       ]),
@@ -144,18 +153,19 @@ export default function IncidentsPage() {
           ) : filteredIncidents.length === 0 ? (
             <p className="p-6 text-muted-foreground">Không có cảnh báo nào khớp bộ lọc.</p>
           ) : (
-            <Table maxHeight="max-h-[max(320px,calc(100dvh-21rem))]">
+            <>
+            <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Mức độ</TableHead>
                   <TableHead>Tóm tắt</TableHead>
                   <TableHead>IP thiết bị</TableHead>
                   <TableHead>Trạng thái</TableHead>
-                  <TableHead>Thời gian</TableHead>
+                  <SortableHead label="Thời gian" field="received_at" sortKey={view.sortKey} sortDir={view.sortDir} onSort={view.toggleSort} />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredIncidents.map((i) => (
+                {view.rows.map((i) => (
                   <TableRow key={i.incident_id}>
                     <TableCell>
                       <SeverityTag level={i.severity_level} />
@@ -176,6 +186,8 @@ export default function IncidentsPage() {
                 ))}
               </TableBody>
             </Table>
+            <TablePagination {...view} unit="cảnh báo" />
+            </>
           )}
         </CardContent>
       </Card>

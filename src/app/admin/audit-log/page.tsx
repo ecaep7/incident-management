@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button'
 import { Tag, type TagTone } from '@/components/Tag'
 import { Download } from 'lucide-react'
 import { downloadCsv, fmtDateTime } from '@/lib/exportCsv'
+import { useTableView } from '@/lib/useTableView'
+import { SortableHead, TablePagination } from '@/components/TableControls'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -89,9 +91,6 @@ export default function AuditLogPage() {
     load()
   }, [role])
 
-  if (loadingProfile) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
-  if (role !== 'Admin') return <div className="p-10 text-muted-foreground">Trang này chỉ dành cho Admin.</div>
-
   const actor = (l: any) => (l.changed_by ? names[l.changed_by] || 'Người dùng đã xóa' : 'Hệ thống / tích hợp')
 
   const kw = keyword.trim().toLowerCase()
@@ -102,9 +101,19 @@ export default function AuditLogPage() {
     return true
   })
 
+  // Sap xep theo thoi gian (mac dinh moi nhat truoc) + phan trang
+  const view = useTableView(visible, {
+    sortFields: { changed_at: (l) => l.changed_at },
+    defaultSort: { key: 'changed_at', dir: 'desc' },
+    resetKey: `${kw}|${tableFilter}|${actionFilter}`,
+  })
+
+  if (loadingProfile) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
+  if (role !== 'Admin') return <div className="p-10 text-muted-foreground">Trang này chỉ dành cho Admin.</div>
+
   function exportExcel() {
     downloadCsv('nhat-ky-thao-tac', ['Thời gian', 'Người thực hiện', 'Vai trò', 'Thao tác', 'Đối tượng', 'Mã bản ghi', 'Thay đổi'],
-      visible.map((l) => [
+      view.sorted.map((l) => [
         fmtDateTime(l.changed_at), actor(l), l.actor_role || '', ACTION[l.action]?.label || l.action,
         TABLE_LABEL[l.table_name] || l.table_name, l.record_id, summarize(l),
       ]))
@@ -163,10 +172,11 @@ export default function AuditLogPage() {
           ) : visible.length === 0 ? (
             <p className="p-6 text-muted-foreground">Chưa có thao tác nào khớp.</p>
           ) : (
-            <Table maxHeight="max-h-[max(320px,calc(100dvh-22rem))]">
+            <>
+            <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Thời gian</TableHead>
+                  <SortableHead label="Thời gian" field="changed_at" sortKey={view.sortKey} sortDir={view.sortDir} onSort={view.toggleSort} />
                   <TableHead>Người thực hiện</TableHead>
                   <TableHead>Thao tác</TableHead>
                   <TableHead>Đối tượng</TableHead>
@@ -175,7 +185,7 @@ export default function AuditLogPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {visible.map((l) => (
+                {view.rows.map((l) => (
                   <TableRow key={l.log_id}>
                     <TableCell className="whitespace-nowrap text-muted-foreground">{fmtDateTime(l.changed_at)}</TableCell>
                     <TableCell>
@@ -195,6 +205,8 @@ export default function AuditLogPage() {
                 ))}
               </TableBody>
             </Table>
+            <TablePagination {...view} unit="bản ghi" />
+            </>
           )}
         </CardContent>
       </Card>

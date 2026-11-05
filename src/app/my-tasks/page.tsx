@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button'
 import { SlaBadge, getSlaState } from '@/components/SlaBadge'
 import { SeverityTag, TaskResultTag } from '@/components/Tag'
 import { StatCard } from '@/components/StatCard'
+import { useTableView } from '@/lib/useTableView'
+import { SortableHead, TablePagination } from '@/components/TableControls'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
@@ -59,8 +61,6 @@ export default function MyTasksPage() {
     return () => clearInterval(interval)
   }, [])
 
-  if (loadingProfile) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
-
   const todo = tasks.filter((t) => tabOf(t) === 'todo')
   const review = tasks.filter((t) => tabOf(t) === 'review')
   const done = tasks.filter((t) => tabOf(t) === 'done')
@@ -84,6 +84,14 @@ export default function MyTasksPage() {
     }
     return true
   })
+
+  // Mac dinh giu thu tu "viec chua nop len dau, han SLA gan nhat truoc"; bam tieu de Han SLA de doi
+  const view = useTableView(visible, {
+    sortFields: { sla_deadline: (t) => t.ticket?.sla_deadline },
+    resetKey: `${activeTab}|${kw}`,
+  })
+
+  if (loadingProfile) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
 
   return (
     <div className="flex flex-col gap-2">
@@ -135,20 +143,21 @@ export default function MyTasksPage() {
               {activeTab === 'todo' && !kw ? 'Bạn đã xử lý hết việc được giao.' : 'Không có việc nào khớp.'}
             </p>
           ) : (
-            <Table maxHeight="max-h-[max(320px,calc(100dvh-31rem))]">
+            <>
+            <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Ticket</TableHead>
                   <TableHead>Nội dung sự cố</TableHead>
                   <TableHead>Mức độ</TableHead>
                   <TableHead>Hướng xử lý</TableHead>
-                  <TableHead>Hạn SLA</TableHead>
+                  <SortableHead label="Hạn SLA" field="sla_deadline" sortKey={view.sortKey} sortDir={view.sortDir} onSort={view.toggleSort} />
                   <TableHead>SLA</TableHead>
                   <TableHead>Kết quả</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {visible.map((t) => (
+                {view.rows.map((t) => (
                   <TableRow key={t.task_id}>
                     <TableCell>
                       <Link href={`/my-tasks/${t.task_id}`} className="font-semibold text-primary hover:underline">
@@ -172,6 +181,8 @@ export default function MyTasksPage() {
                 ))}
               </TableBody>
             </Table>
+            <TablePagination {...view} unit="việc" />
+            </>
           )}
         </CardContent>
       </Card>

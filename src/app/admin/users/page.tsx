@@ -12,6 +12,8 @@ import { Tag } from '@/components/Tag'
 import { FormDialog } from '@/components/FormDialog'
 import { Download, UserPlus } from 'lucide-react'
 import { downloadCsv } from '@/lib/exportCsv'
+import { useTableView } from '@/lib/useTableView'
+import { TablePagination } from '@/components/TableControls'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
@@ -66,9 +68,6 @@ export default function UsersPage() {
       })
   }, [role])
 
-  if (loadingProfile) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
-  if (role !== 'Admin') return <div className="p-10 text-muted-foreground">Trang này chỉ dành cho Admin.</div>
-
   const isActive = (u: any) => u.is_active !== false
   const deactivating = target ? isActive(target) : false
 
@@ -85,6 +84,12 @@ export default function UsersPage() {
     if (kw && !normalize([u.full_name, u.email, u.user_code].filter(Boolean).join(' ')).includes(kw)) return false
     return true
   })
+
+  // Phan trang (danh sach khong co cot thoi gian nen khong can sap xep)
+  const view = useTableView(filteredRows, { resetKey: `${kw}|${roleFilter}|${depFilter}|${statusFilter}` })
+
+  if (loadingProfile) return <div className="flex items-center justify-center p-10 text-muted-foreground">Đang tải...</div>
+  if (role !== 'Admin') return <div className="p-10 text-muted-foreground">Trang này chỉ dành cho Admin.</div>
 
   // Xuat danh sach DANG HIEN THI (da ap bo loc) ra file mo duoc bang Excel
   function exportExcel() {
@@ -203,6 +208,7 @@ export default function UsersPage() {
           ) : filteredRows.length === 0 ? (
             <p className="p-6 text-muted-foreground">Không có người dùng nào khớp với bộ lọc.</p>
           ) : (
+            <>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -215,7 +221,7 @@ export default function UsersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRows.map((u) => {
+                {view.rows.map((u) => {
                   const self = u.user_id === profile?.user_id
                   return (
                     <TableRow key={u.user_id} className={isActive(u) ? '' : 'opacity-60'}>
@@ -245,6 +251,8 @@ export default function UsersPage() {
                 })}
               </TableBody>
             </Table>
+            <TablePagination {...view} unit="người dùng" />
+            </>
           )}
         </CardContent>
       </Card>
